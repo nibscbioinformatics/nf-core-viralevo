@@ -65,13 +65,6 @@ def modules = params.modules.clone()
 def multiqc_options   = modules['multiqc']
 multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 
-if (!params.skip_assembly) {
-    multiqc_options.publish_files.put('assembly_metrics_mqc.csv','')
-}
-if (!params.skip_variants) {
-    multiqc_options.publish_files.put('variants_metrics_mqc.csv','')
-}
-
 //
 // MODULE: Local to the pipeline
 //
