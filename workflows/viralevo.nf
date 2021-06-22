@@ -10,7 +10,7 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 WorkflowViralevo.initialise(params, log)
 
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.primer_fasta, params.primer_bed ]
+def checkPathParamList = [ params.input, params.fasta, params.gff, params.multiqc_config, params.primer_fasta, params.primer_bed ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
@@ -64,6 +64,13 @@ def modules = params.modules.clone()
 
 def multiqc_options   = modules['multiqc']
 multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+
+if (!params.skip_assembly) {
+    multiqc_options.publish_files.put('assembly_metrics_mqc.csv','')
+}
+if (!params.skip_variants) {
+    multiqc_options.publish_files.put('variants_metrics_mqc.csv','')
+}
 
 //
 // MODULE: Local to the pipeline
