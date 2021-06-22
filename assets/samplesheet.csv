@@ -1,3 +1,4 @@
-sample,fastq_1,fastq_2
-SAMPLE_PAIRED_END,/path/to/fastq/files/AEG588A1_S1_L002_R1_001.fastq.gz,/path/to/fastq/files/AEG588A1_S1_L002_R2_001.fastq.gz
-SAMPLE_SINGLE_END,/path/to/fastq/files/AEG588A4_S4_L003_R1_001.fastq.gz,
+sample,fastq_1,fastq_2,strandedness
+SRR11494468,https://github.com/nibscbioinformatics/testdata/raw/master/covid19/SRR11494468_1.fastq.gz,https://github.com/nibscbioinformatics/testdata/raw/master/covid19/SRR11494468_2.fastq.gz,unstranded
+SRR11494508,https://github.com/nibscbioinformatics/testdata/raw/master/covid19/SRR11494508_1.fastq.gz,https://github.com/nibscbioinformatics/testdata/raw/master/covid19/SRR11494508_2.fastq.gz,unstranded
+SRR11577895,https://github.com/nibscbioinformatics/testdata/raw/master/covid19/SRR11577895_1.fastq.gz,https://github.com/nibscbioinformatics/testdata/raw/master/covid19/SRR11577895_2.fastq.gz,unstranded
