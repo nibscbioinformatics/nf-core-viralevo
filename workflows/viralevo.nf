@@ -4,18 +4,31 @@
 ========================================================================================
 */
 
+def valid_params = [
+    protocols   : ['metagenomic', 'amplicon'],
+    callers     : ['ivar', 'lofreq'],
+    assemblers  : ['spades', 'unicycler', 'minia'],
+    spades_modes: ['rnaviral', 'corona', 'metaviral', 'meta', 'metaplasmid', 'plasmid', 'isolate', 'rna', 'bio']
+]
+
 def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 
 // Validate input parameters
 WorkflowViralevo.initialise(params, log)
 
-// TODO nf-core: Add all file path parameters for the pipeline to the list below
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.fasta ]
+def checkPathParamList = [ params.input, params.multiqc_config, params.fasta, params.adapter, params.primer ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
+
+// Stage dummy file to be used as an optional input where required
+ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
 
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
+
+def assemblers = params.assemblers ? params.assemblers.split(',').collect{ it.trim().toLowerCase() } : []
+def callers    = params.callers    ? params.callers.split(',').collect{ it.trim().toLowerCase() }    : []
+if (!callers)  { callers = params.protocol == 'amplicon' ? ['ivar'] : ['bcftools'] }
 
 /*
 ========================================================================================
@@ -23,7 +36,7 @@ if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input sample
 ========================================================================================
 */
 
-ch_multiqc_config        = file("$projectDir/assets/multiqc_config.yaml", checkIfExists: true)
+ch_multiqc_config        = file("$projectDir/assets/multiqc_config_illumina.yaml", checkIfExists: true)
 ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multiqc_config) : Channel.empty()
 
 /*
@@ -35,10 +48,22 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
+def multiqc_options   = modules['illumina_multiqc']
+multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+
+if (!params.skip_assembly) {
+    multiqc_options.publish_files.put('assembly_metrics_mqc.csv','')
+}
+if (!params.skip_variants) {
+    multiqc_options.publish_files.put('variants_metrics_mqc.csv','')
+}
+
 //
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['csv':'']] )
+include { LOFREQ_INDELQUAL      } from '../modules/local/lofreq_indelqual'      addParams( options: [:]                          )
+include { LOFREQ_CALLPARALLEL   } from '../modules/local/lofreq_callparallel'   addParams( options: [:]                          )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
