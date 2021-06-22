@@ -10,7 +10,7 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 WorkflowViralevo.initialise(params, log)
 
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.primer_fasta, params.primer_bed, params.anno, params.phyref, params.genome_rmodel, params.ivar_calling_af_threshold, params.ivar_calling_dp_threshold, params.vaf_threshold, params.alt_depth_threshold, params.noannotation, params.tools ]
+def checkPathParamList = [ params.input, params.multiqc_config, params.primer_fasta, params.primer_bed ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
