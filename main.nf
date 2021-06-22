@@ -5,31 +5,20 @@
 ========================================================================================
      nf-core-viralevo Analysis Pipeline
      #### Homepage / Documentation
-     https://github.com/kaurravneet4123
+     Github: https://github.com/nibscbioinformatics/nf-core-viralevo
 ----------------------------------------------------------------------------------------
 */
 
 nextflow.enable.dsl = 2
 
-////////////////////////////////////////////////////
-/* --               PRINT HELP                 -- */
-////////////////////////////////////////////////////
-
-log.info Utils.logo(workflow, params.monochrome_logs)
-
-def json_schema = "$projectDir/nextflow_schema.json"
-if (params.help) {
-    def command = "nextflow run nf-core/conva --input samplesheet.csv -profile conda"
-    log.info NfcoreSchema.paramsHelp(workflow, params, json_schema, command)
-    exit 0
-}
-
+/*
 ========================================================================================
-/* --        FASTA PARAMETER VALUE                                                 -- */
+           GENOME PARAMETER VALUES                                                 
 ========================================================================================
+*/
 
-
-params.genome = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.fasta = WorkflowMain.getGenomeAttribute(params, 'fasta')
+params.gff   = WorkflowMain.getGenomeAttribute(params, 'gff')
 
 /*
 ========================================================================================
@@ -38,11 +27,6 @@ params.genome = WorkflowMain.getGenomeAttribute(params, 'fasta')
 */
 
 WorkflowMain.initialise(workflow, params, log)
-
-def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params, json_schema)
-log.info NfcoreSchema.paramsSummaryLog(workflow, params, json_schema)
-log.info Workflow.citation(workflow)
-log.info Utils.dashedLine(params.monochrome_logs)
 
 /*
 ========================================================================================
@@ -55,7 +39,7 @@ workflow NFCORE_VIRALEVO {
     //
     // WORKFLOW: Run main nf-core-viralevo analysis pipeline
     //
-    include { VIRALEVO } from './workflows/viralevo' addParams( summary_params: summary_params )
+    include { VIRALEVO } from './workflows/viralevo'
     VIRALEVO ()
 }
 

@@ -10,12 +10,13 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 WorkflowViralevo.initialise(params, log)
 
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.multiqc_config, params.genome, params.primer_fasta, params.primer_bed, params.ivar_calling_af_threshold, params.ivar_calling_dp_threshold, params.vaf_threshold, params.alt_depth_threshold, params.noannotation, params.tools ]
+def checkPathParamList = [ params.input, params.multiqc_config, params.primer_fasta, params.primer_bed, params.anno, params.phyref, params.genome_rmodel, params.ivar_calling_af_threshold, params.ivar_calling_dp_threshold, params.vaf_threshold, params.alt_depth_threshold, params.noannotation, params.tools ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
 if (params.input) { ch_input = file(params.input) } else { exit 1, 'Input samplesheet not specified!' }
 
+// Check if genome exists in the config file
 if (params.virus_reference && params.genome && !params.virus_reference.containsKey(params.genome)) {
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
 }
@@ -61,15 +62,8 @@ ch_multiqc_custom_config = params.multiqc_config ? Channel.fromPath(params.multi
 // Don't overwrite global params.modules, create a copy instead and use that within the main script.
 def modules = params.modules.clone()
 
-def multiqc_options   = modules['illumina_multiqc']
+def multiqc_options   = modules['multiqc']
 multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
-
-if (!params.skip_assembly) {
-    multiqc_options.publish_files.put('assembly_metrics_mqc.csv','')
-}
-if (!params.skip_variants) {
-    multiqc_options.publish_files.put('variants_metrics_mqc.csv','')
-}
 
 //
 // MODULE: Local to the pipeline
@@ -93,8 +87,8 @@ include { VARIANTS_IVAR    } from '../subworkflows/local/variants_ivar'    addPa
 ========================================================================================
 */
 
-def multiqc_options   = modules['multiqc']
-multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
+//def multiqc_options = modules['multiqc']
+//multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 
 //
 // MODULE: Installed directly from nf-core/modules
@@ -106,7 +100,7 @@ include { BWAMEM2_INDEX            } from '../modules/nf-core/software/bwamem2/i
 include { BWAMEM2_MEM              } from '../modules/nf-core/software/bwamem2/mem/main'        addParams( options: [:] )
 include { SAMTOOLS_INDEX           } from '../modules/nf-core/software/samtools/index/main'     addParams( options: [:] )
 include { SAMTOOLS_FAIDX           } from '../modules/nf-core/software/samtools/faidx/main'     addParams( options: [:] )
-include { MULTIQC                  } from '../modules/nf-core/software/multiqc/main'            addParams( options: multiqc_options   )
+include { MULTIQC                  } from '../modules/nf-core/software/multiqc/main'            addParams( options: [:] )
 
 //
 // MODULE: Installed directly from nf-core/modules
