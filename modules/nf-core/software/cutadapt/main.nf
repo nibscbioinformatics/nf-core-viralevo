@@ -20,6 +20,7 @@ process CUTADAPT {
 
     input:
     tuple val(meta), path(reads)
+    path adapterfile
 
     output:
     tuple val(meta), path('*.trim.fastq.gz'), emit: reads
@@ -29,14 +30,17 @@ process CUTADAPT {
     script:
     def software = getSoftwareName(task.process)
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
+    def paired   = meta.single_end ? "-a file:${adapterfile} -g file:${adapterfile}"  : "-a file:${adapterfile} -A file:${adapterfile} -g file:${adapterfile} -G file:${adapterfile}"
     def trimmed  = meta.single_end ? "-o ${prefix}.trim.fastq.gz" : "-o ${prefix}_1.trim.fastq.gz -p ${prefix}_2.trim.fastq.gz"
     """
     cutadapt \\
         --cores $task.cpus \\
         $options.args \\
+        $paired \\
         $trimmed \\
         $reads \\
         > ${prefix}.cutadapt.log
+
     echo \$(cutadapt --version) > ${software}.version.txt
     """
 }

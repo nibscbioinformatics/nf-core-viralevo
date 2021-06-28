@@ -46,7 +46,7 @@ process SNPEFF_ANN {
         $genome_version \\
         ${vcf} \\
         -csvStats ${prefix}_${caller}.snpeff.csv \\
-        > ${prefix}_${caller}_ann.vcf
+        > ${prefix}_${caller}_annotated.vcf
     mv snpEff_summary.html ${prefix}_${caller}.snpeff.summary.html
     echo \$(snpEff -version 2>&1) | sed 's/^.*snpEff //; s/Using.*\$//' > ${software}.version.txt
     """
