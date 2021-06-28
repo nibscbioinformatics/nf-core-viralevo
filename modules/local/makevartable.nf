@@ -18,7 +18,7 @@ process MAKEVARTABLE {
 
 
     input:
-    path vcf
+    path vcfDir
     val alt_depth_threshold
     val vaf_threshold
 
@@ -26,8 +26,7 @@ process MAKEVARTABLE {
     path "varianttable.csv", emit: csv
 
     script:
-    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    python $projectDir/bin/tablefromvcf.py $vcf varianttable.csv ${alt_depth_threshold} ${vaf_threshold} 
+    python $projectDir/bin/tablefromvcf.py $vcfDir varianttable.csv ${alt_depth_threshold} ${vaf_threshold} 
     """
 }

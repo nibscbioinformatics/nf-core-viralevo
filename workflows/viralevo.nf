@@ -284,12 +284,11 @@ workflow VIRALEVO {
     //
     // MODULE: Take output from annotated vcf files and generate tables
     //
-    varsfortable = Channel.empty()
-    varsfortable = varsfortable.mix(ch_annotatedfortable)
-    
-    MAKEVARTABLE (
-        /Data/Users/rbhuller/tmp/new/results/variants/snpeff, params.alt_depth_threshold, params.vaf_threshold
-    )    
+    //vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff')
+
+    //MAKEVARTABLE (
+    //    vcf, params.alt_depth_threshold, params.vaf_threshold
+    //)    
 
     //
     // MODULE: Pipeline reporting

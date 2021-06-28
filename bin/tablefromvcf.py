@@ -16,7 +16,6 @@ fileout = open(sys.argv[2], "w")
 basicpassalt = int(sys.argv[3]) #100
 basicpassproportion = float(sys.argv[4]) #0.01
 
-vcfout  = open(sys.arg[5], "w")
 
 #ivar vcf has lines like:
 #NC_045512.2     45      .       G       A       .       FALSE   IVAR_DP=245;IVAR_GFF=NA;IVAR_REFAA=NA;IVAR_ALTAA=NA;ANN=A|intergenic_region|MODIFIER|CHR_START-ORF1ab|CHR_START-GU280_gp01|intergenic_region|CHR_START-GU280_gp01|||n.45G>A||||||       GT:PVAL:AQ:DP:AF        G/A:0.482283:37,32:244,1:0.00408163
