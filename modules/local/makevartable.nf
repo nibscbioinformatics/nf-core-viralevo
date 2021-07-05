@@ -24,6 +24,7 @@ process MAKEVARTABLE {
 
     output:
     path "varianttable.csv", emit: csv
+    path ("*_filtered.vcf"), emit: filteredvars
 
     script:
     """

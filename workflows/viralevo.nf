@@ -35,13 +35,13 @@ params.genome_rmodel = params.genome ? params.virus_reference[params.genome].rmo
 if (params.genome_rmodel) { ch_genome_rmodel = Channel.value(file(params.genome_rmodel, checkIfExists: true)) }
 
 //Creating channels for other files
-ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
+//ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
 
 ch_primer_bed = params.primer_bed ? Channel.value(file(params.primer_bed)) : "null"
 
 ch_primer_fasta = params.primer_fasta ? Channel.value(file(params.primer_fasta)) : "null"
 
-ch_ivar_variants_header_mqc = file("$projectDir/assets/headers/ivar_variants_header_mqc.txt", checkIfExists: true)
+//ch_ivar_variants_header_mqc = file("$projectDir/assets/headers/ivar_variants_header_mqc.txt", checkIfExists: true)
 
 
 /*
@@ -72,6 +72,7 @@ include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' 
 include { LOFREQ_INDELQUAL      } from '../modules/local/lofreq_indelqual'      addParams( options: modules['lofreq_indelqual']   )
 include { LOFREQ_CALLPARALLEL   } from '../modules/local/lofreq_callparallel'   addParams( options: modules['lofreq_callparallel'])
 include { SNPEFF_ANN            } from '../modules/local/snpeff_ann'            addParams( options: modules['snpeff_ann' ]        )
+include { TSV2VCF               } from '../modules/local/tsv2vcf'               addParams( options: modules['tsv2vcf' ]           )
 include { MAKEVARTABLE          } from '../modules/local/makevartable'          addParams( options: modules['makevartable' ]      )
 
 //
@@ -101,10 +102,11 @@ include { BWAMEM2_MEM                                } from '../modules/nf-core/
 include { SAMTOOLS_INDEX                             } from '../modules/nf-core/software/samtools/index/main' addParams( options: modules['samtools_index']           ) 
 include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_INDELQUAL } from '../modules/nf-core/software/samtools/index/main' addParams( options: modules['samtools_index_indelqual'] )
 include { SAMTOOLS_FAIDX                             } from '../modules/nf-core/software/samtools/faidx/main' addParams( options: modules['samtools_faidx']           )
+include { IVAR_VARIANTS                              } from '../modules/nf-core/software/ivar/variants/main'  addParams( options: modules['ivar_variants']            )
 include { MULTIQC                                    } from '../modules/nf-core/software/multiqc/main'        addParams( options: [:]                                 )
 
 //
-// MODULE: Installed directly from nf-core/modules
+// SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
 //include { BAM_STATS_SAMTOOLS     } from '../subworkflows/nf-core/bam_stats_samtools'          addParams( options: [:] )
 include { BAM_SORT_SAMTOOLS      } from '../subworkflows/nf-core/bam_sort_samtools'           addParams( sort_options: modules['samtools_sort'], index_options: modules['samtools_index'], stats_options: modules['samtools_stats'] )
@@ -255,21 +257,26 @@ workflow VIRALEVO {
 
 
     //
-    // SUBWORKFLOW: Call variants with IVAR, then convertion to vcf, gzip and stats using bcftools
+    // MODULE: Call variants with IVAR
     //
-    VARIANTS_IVAR (
-        ch_primer_trimmed_sorted_bam, ch_fasta, ch_annotation, ch_ivar_variants_header_mqc
+    IVAR_VARIANTS (
+        ch_primer_trimmed_sorted_bam, ch_fasta, ch_annotation
     )
-    ch_ivar_variants     = VARIANTS_IVAR.out.vcf_orig
+    ch_ivar_variants     = IVAR_VARIANTS.out.tsv
     //ch_ivar_variants.view()
-    ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.ivar_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.tabix_version.first().ifEmpty(null))
-    ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.bcftools_version.first().ifEmpty(null))
+    //ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.ivar_version.first().ifEmpty(null))
+    //ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.tabix_version.first().ifEmpty(null))
+    //ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.bcftools_version.first().ifEmpty(null))
+
+    TSV2VCF (
+        ch_ivar_variants
+    )
+    ch_ivar2vcf = TSV2VCF.out.vcf
 
     //
     // Merge variant calls from LOFREQ and IVAR
     //
-    merged_ch = ch_lofreq_variants.mix(ch_ivar_variants)
+    merged_ch = ch_lofreq_variants.mix(ch_ivar2vcf)
     //merged_ch.view()
 
     //
@@ -284,11 +291,11 @@ workflow VIRALEVO {
     //
     // MODULE: Take output from annotated vcf files and generate tables
     //
-    //vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff')
+    vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results2/variants/snpeff/vcf')
 
-    //MAKEVARTABLE (
-    //    vcf, params.alt_depth_threshold, params.vaf_threshold
-    //)    
+    MAKEVARTABLE (
+        vcf, params.alt_depth_threshold, params.vaf_threshold
+    )    
 
     //
     // MODULE: Pipeline reporting
