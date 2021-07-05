@@ -34,12 +34,12 @@ WorkflowMain.initialise(workflow, params, log)
 ========================================================================================
 */
 
+include { VIRALEVO } from './workflows/viralevo'
+    
+//
+// WORKFLOW: Run main nf-core-viralevo analysis pipeline
+//
 workflow NFCORE_VIRALEVO {
-
-    //
-    // WORKFLOW: Run main nf-core-viralevo analysis pipeline
-    //
-    include { VIRALEVO } from './workflows/viralevo'
     VIRALEVO ()
 }
 
