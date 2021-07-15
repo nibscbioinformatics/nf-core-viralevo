@@ -80,7 +80,8 @@ include { MAKEVARTABLE          } from '../modules/local/makevartable'          
 //
 include { INPUT_CHECK      } from '../subworkflows/local/input_check'      addParams( options: [:] )
 include { PRIMER_TRIM_IVAR } from '../subworkflows/local/primer_trim_ivar' addParams( ivar_trim_options: modules['ivar_trim'], samtools_options: modules['ivar_trim_sort_bam'] )
-include { VARIANTS_IVAR    } from '../subworkflows/local/variants_ivar'    addParams( ivar_variants_options: modules['ivar_variants'], ivar_variants_to_vcf_options: modules['ivar_variants_to_vcf'], tabix_bgzip_options: modules['ivar_tabix_bgzip'], tabix_tabix_options: modules['ivar_tabix_tabix'], bcftools_stats_options: modules['ivar_bcftools_stats']               )
+//include { VARIANTS_IVAR    } from '../subworkflows/local/variants_ivar'    addParams( ivar_variants_options: modules['ivar_variants'], ivar_variants_to_vcf_options: modules['ivar_variants_to_vcf'], tabix_bgzip_options: modules['ivar_tabix_bgzip'], tabix_tabix_options: modules['ivar_tabix_tabix'], bcftools_stats_options: modules['ivar_bcftools_stats']               )
+include { CONSENSUS_FASTA  } from '../subworkflows/local/consensus_fasta'  addParams( cut_vcf_options: modules['cut_vcf'], bcftools_norm_options: modules['bcftools_norm'], bcftools_view_options: modules['bcftools_view'], bcftools_index_options: modules['bcftools_index'], bcftools_consensus_options: modules['bcftools_consensus'] )
 
 /*
 ========================================================================================
@@ -289,14 +290,24 @@ workflow VIRALEVO {
     ch_software_versions = ch_software_versions.mix(SNPEFF_ANN.out.version.first().ifEmpty(null))
 
     //
-    // MODULE: Take output from annotated vcf files and generate tables
+    // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
     //
     vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results2/variants/snpeff/vcf')
 
     MAKEVARTABLE (
         vcf, params.alt_depth_threshold, params.vaf_threshold
     )    
-
+    ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
+    //ch_filtered_vcfs.view()
+    
+    //
+    // Subworkflow: Build a consensus using bcftools from the filtered vcfs
+    //
+    //CONSENSUS_FASTA (
+    //    ch_filtered_vcfs, ch_fasta
+    //) 
+    //CONSENSUS_FASTA.out.view_out.view()
+    
     //
     // MODULE: Pipeline reporting
     //

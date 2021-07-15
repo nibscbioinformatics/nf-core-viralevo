@@ -38,6 +38,6 @@ process LOFREQ_CALLPARALLEL {
         -o ${prefix}.vcf \\
         $bam
 
-    echo \$(lofreq --version 2>&1) | sed 's/^.*lofreq //; s/Using.*\$//' > ${software}.version.txt
+    echo \$(lofreq version 2>&1) | sed 's/^.*lofreq //; s/Using.*\$//' > ${software}.version.txt
     """
 }

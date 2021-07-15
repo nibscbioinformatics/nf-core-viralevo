@@ -3,7 +3,7 @@ include { saveFiles } from './functions'
 params.options = [:]
 
 process MAKEVARTABLE {
-    tag "$vcf"
+    tag "$vcfDir"
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
