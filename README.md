@@ -17,12 +17,12 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 2. Adapter and Quality trimming ([`Cutadapt!`](https://cutadapt.readthedocs.io/en/stable/index.html))
 3. Alignment ([`BWA!`](https://github.com/lh3/bwa))
 4. Sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-5.Alignment-level QC ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
-5. Insert indel quality ([`LoFreq`](https://csb5.github.io/lofreq/commands)) 
-6. Variant calling with LoFreq ([`LoFreq`](https://csb5.github.io/lofreq/))
-7. Variant calling with iVAR ([`iVAR`](https://andersen-lab.github.io/ivar/html/manualpage.html))
-8. Variant annotation ([`SnpEff`](http://pcingola.github.io/SnpEff/))
-9. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
+5. Alignment-level QC ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+6. Insert indel quality ([`LoFreq`](https://csb5.github.io/lofreq/commands)) 
+7. Variant calling with LoFreq ([`LoFreq`](https://csb5.github.io/lofreq/))
+8. Variant calling with iVAR ([`iVAR`](https://andersen-lab.github.io/ivar/html/manualpage.html))
+9. Variant annotation ([`SnpEff`](http://pcingola.github.io/SnpEff/))
+10. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
 
@@ -30,20 +30,20 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 
 2. Install any of [`Docker`](https://docs.docker.com/engine/installation/), [`Singularity`](https://www.sylabs.io/guides/3.0/user-guide/), [`Podman`](https://podman.io/), [`Shifter`](https://nersc.gitlab.io/development/shifter/how-to-use/) or [`Charliecloud`](https://hpc.github.io/charliecloud/) for full pipeline reproducibility _(please only use [`Conda`](https://conda.io/miniconda.html) as a last resort; see [docs](https://nf-co.re/usage/configuration#basic-configuration-profiles))_
 
-3. Download the pipeline and test it on a minimal dataset with a single command in the directory above the nf-core-viralevo directory::
+3. Download the pipeline and test it on a minimal dataset with a single command in the directory above the nf-core-viralevo directory:
 
     ```console
     nextflow run nf-core-viralevo -profile test,<docker/singularity/podman/shifter/charliecloud/conda/institute>
     ```
 
     * Please check [nf-core/configs](https://github.com/nf-core/configs#documentation) to see if a custom config file to run nf-core pipelines already exists for your Institute. If so, you can simply use `-profile <institute>` in your command. This will enable either `docker` or `singularity` and set the appropriate execution settings for your local compute environment.
-    * If you are using `singularity` then the pipeline will auto-detect this and attempt to download the Singularity images directly as opposed to performing a conversion from Docker images. If you ar$
+    * If you are using `singularity` then the pipeline will auto-detect this and attempt to download the Singularity images directly as opposed to performing a conversion from Docker images. If you are persistently observing issues downloading Singularity images directly due to timeout or network issues then please use the `--singularity_pull_docker_container` parameter to pull and convert the Docker image instead. It is also highly recommended to use the [`NXF_SINGULARITY_CACHEDIR` or `singularity.cacheDir`](https://www.nextflow.io/docs/latest/singularity.html?#singularity-docker-hub) settings to store the images in a central location for future pipeline runs as shown below:
 
     ```bash
     NXF_SINGULARITY_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo -profile test,singularity
     ```
 
-    * If you are using `conda`, it is highly recommended to use the [`NXF_CONDA_CACHEDIR` or `conda.cacheDir`](https://www.nextflow.io/docs/latest/conda.html) settings to store the environments in a c$
+    * If you are using `conda`, it is highly recommended to use the [`NXF_CONDA_CACHEDIR` or `conda.cacheDir`](https://www.nextflow.io/docs/latest/conda.html) settings to store the environments in a central location for future pipeline runs as shown below:
 
     ```bash
     NXF_CONDA_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo -profile test,conda
