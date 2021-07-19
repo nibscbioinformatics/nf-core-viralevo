@@ -7,16 +7,17 @@
 
 ## Introduction
 
-**nf-core-viralevo** is a bioinformatics pipeline used to perform intra-host/low-frequency variant calling for viral samples.
+**nf-core-viralevo** is a bioinformatics pipeline used to perform low-frequency variant calling for viral samples. It supports illumina short-read sequencing data.
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
 ## Pipeline summary
 
 1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))
-2. Primer and Quality trimming ([`Cutadapt!`](https://cutadapt.readthedocs.io/en/stable/index.html))
+2. Adapter and Quality trimming ([`Cutadapt!`](https://cutadapt.readthedocs.io/en/stable/index.html))
 3. Alignment ([`BWA!`](https://github.com/lh3/bwa))
 4. Sort and index alignments ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
+5.Alignment-level QC ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
 5. Insert indel quality ([`LoFreq`](https://csb5.github.io/lofreq/commands)) 
 6. Variant calling with LoFreq ([`LoFreq`](https://csb5.github.io/lofreq/))
 7. Variant calling with iVAR ([`iVAR`](https://andersen-lab.github.io/ivar/html/manualpage.html))
