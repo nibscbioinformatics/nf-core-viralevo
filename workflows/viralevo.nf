@@ -35,13 +35,10 @@ params.genome_rmodel = params.genome ? params.virus_reference[params.genome].rmo
 if (params.genome_rmodel) { ch_genome_rmodel = Channel.value(file(params.genome_rmodel, checkIfExists: true)) }
 
 //Creating channels for other files
-//ch_dummy_file = file("$projectDir/assets/dummy_file.txt", checkIfExists: true)
 
 ch_primer_bed = params.primer_bed ? Channel.value(file(params.primer_bed)) : "null"
 
 ch_primer_fasta = params.primer_fasta ? Channel.value(file(params.primer_fasta)) : "null"
-
-//ch_ivar_variants_header_mqc = file("$projectDir/assets/headers/ivar_variants_header_mqc.txt", checkIfExists: true)
 
 
 /*
@@ -80,7 +77,6 @@ include { MAKEVARTABLE          } from '../modules/local/makevartable'          
 //
 include { INPUT_CHECK      } from '../subworkflows/local/input_check'      addParams( options: [:] )
 include { PRIMER_TRIM_IVAR } from '../subworkflows/local/primer_trim_ivar' addParams( ivar_trim_options: modules['ivar_trim'], samtools_options: modules['ivar_trim_sort_bam'] )
-//include { VARIANTS_IVAR    } from '../subworkflows/local/variants_ivar'    addParams( ivar_variants_options: modules['ivar_variants'], ivar_variants_to_vcf_options: modules['ivar_variants_to_vcf'], tabix_bgzip_options: modules['ivar_tabix_bgzip'], tabix_tabix_options: modules['ivar_tabix_tabix'], bcftools_stats_options: modules['ivar_bcftools_stats']               )
 include { CONSENSUS_FASTA  } from '../subworkflows/local/consensus_fasta'  addParams( cut_vcf_options: modules['cut_vcf'], bcftools_norm_options: modules['bcftools_norm'], bcftools_view_options: modules['bcftools_view'], bcftools_index_options: modules['bcftools_index'], bcftools_consensus_options: modules['bcftools_consensus'] )
 
 /*
@@ -111,7 +107,7 @@ include { MULTIQC                                    } from '../modules/nf-core/
 //
 //include { BAM_STATS_SAMTOOLS     } from '../subworkflows/nf-core/bam_stats_samtools'          addParams( options: [:] )
 include { BAM_SORT_SAMTOOLS      } from '../subworkflows/nf-core/bam_sort_samtools'           addParams( sort_options: modules['samtools_sort'], index_options: modules['samtools_index'], stats_options: modules['samtools_stats'] )
-include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'      addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: modules['picard_markduplicates_samtools'], samtools_stats_options: modules['picard_markduplicates_samtools'] )
+//include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'      addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: modules['picard_markduplicates_samtools'], samtools_stats_options: modules['picard_markduplicates_samtools'] )
 
 /*
 ========================================================================================
@@ -137,7 +133,8 @@ workflow VIRALEVO {
             meta.id = meta.id.split('_')[0..-2].join('_')
             [ meta, fastq ] }
     .set { ch_fastq }
-    
+    //ch_fastq.view()
+  
     //
     // MODULE: Run FastQC on raw reads
     //
@@ -265,10 +262,11 @@ workflow VIRALEVO {
     )
     ch_ivar_variants     = IVAR_VARIANTS.out.tsv
     //ch_ivar_variants.view()
-    //ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.ivar_version.first().ifEmpty(null))
-    //ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.tabix_version.first().ifEmpty(null))
-    //ch_software_versions = ch_software_versions.mix(VARIANTS_IVAR.out.bcftools_version.first().ifEmpty(null))
+    ch_software_versions = ch_software_versions.mix(IVAR_VARIANTS.out.version.first().ifEmpty(null))
 
+    //
+    // MODULE: Convert TSV to VCF
+    //
     TSV2VCF (
         ch_ivar_variants
     )
@@ -293,6 +291,7 @@ workflow VIRALEVO {
     // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
     //
     vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results2/variants/snpeff/vcf')
+    //vcf = Channel.fromPath('$launchDir/results2/variants/snpeff/vcf')
 
     MAKEVARTABLE (
         vcf, params.alt_depth_threshold, params.vaf_threshold

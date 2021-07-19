@@ -35,25 +35,26 @@ workflow CONSENSUS_FASTA {
     // Convert vcf to vcf.gz using BCFTOOLS
     //
     BCFTOOLS_VIEW ( BCFTOOLS_NORM.out.vcf )
-    BCFTOOLS_VIEW.out.vcf.map { file -> tuple(file.baseName[0..-5], file) }.set { ch_vcf }
-    //ch_vcf.view()    
+    BCFTOOLS_VIEW.out.vcf.map { file -> tuple("id:"+file.baseName[0..-5], file) }.set { ch_vcf }
+    ch_vcf.view()    
 
     //
     // Index vcf file using BCFTOOLS
     //
-    BCFTOOLS_INDEX ( BCFTOOLS_VIEW.out.vcf )
-    BCFTOOLS_INDEX.out.index.map { file -> tuple(file.baseName[0..-8], file) }.set { ch_index }
+    //BCFTOOLS_INDEX ( BCFTOOLS_VIEW.out.vcf )
+    //BCFTOOLS_INDEX.out.index.map { file -> tuple("id:"+file.baseName[0..-8], file) }.set { ch_index }
     //ch_index.view()
 
-    vcf_csi = ch_vcf.join(ch_index, by: [0]).toList()
-    vcf_csi.view()
-    rm_id = vcf_csi.remove(0)
-    ch_final = vcf_csi.minus(rm_id)
+    //vcf_csi = ch_vcf.join(ch_index, by: [0]).toList()
+    //vcf_csi.view()
+    //ch_final = vcf_csi.mix(fasta)
+    //rm_id = vcf_csi.remove([0])
+    //ch_final = vcf_csi.minus(rm_id)
     //ch_final.view()
     //
     // Build consensus fasta using BCFTOOLS
     //
-    BCFTOOLS_CONSENSUS ( ch_final, fasta )
+    //BCFTOOLS_CONSENSUS ( ch_final )
 
 
 
@@ -61,7 +62,7 @@ workflow CONSENSUS_FASTA {
     cut_vcf          = CUT_VCF.out.vcf              // channel: [ vcf   ] 
     norm_out         = BCFTOOLS_NORM.out.vcf        // channel: [ vcf   ]
     view_out         = BCFTOOLS_VIEW.out.vcf        // channel: [ vcf   ]
-    index_out        = BCFTOOLS_INDEX.out.index     // channel: [ vcf   ]
-    consensus_out    = BCFTOOLS_CONSENSUS.out.fasta // channel: [ vcf,fasta ]
+    //index_out        = BCFTOOLS_INDEX.out.index     // channel: [ vcf   ]
+    //consensus_out    = BCFTOOLS_CONSENSUS.out.fasta // channel: [ vcf,fasta ]
     bcftools_version = BCFTOOLS_NORM.out.version   // path: *.version.txt
 }

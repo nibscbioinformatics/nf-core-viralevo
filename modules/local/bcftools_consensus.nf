@@ -20,20 +20,19 @@ process BCFTOOLS_CONSENSUS {
 
     input:
     tuple path(vcf), path(csi)
-    path fasta
+    path fasta 
 
     output:
-    path "*.fasta", emit: fasta
+    tuple path("*.fa"), emit: fasta
     path "*.version.txt", emit: version
 
     script:
     def software = getSoftwareName(task.process)
     def filename = "$vcf".tokenize('_')[0]
     def caller   = ("$vcf".contains("_ivar")) ? "ivar" :  ("$vcf".contains("lofreq")) ? "lofreq" : ''
+    def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat $fasta | bcftools consensus \\
-        $options.args \\
-        $vcf > ${filename}_${caller}.fasta
+    cat $fasta | bcftools consensus $vcf $options.args > ${filename}_${caller}.fa
 
     echo \$(bcftools --version 2>&1) | sed 's/^.*bcftools //; s/ .*\$//' > ${software}.version.txt
     """
