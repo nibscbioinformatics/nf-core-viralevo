@@ -52,7 +52,7 @@ An [example samplesheet](../assets/samplesheet_test.csv) has been provided with 
 
 ## Reference genome name
 
-* You need to provide the name os a viral reference genome to '--genome'. You can either choose the already available name (e.g. 'SARS-CoV-2') from the nf-core-viralevo/conf/igenomes.config file or add details of a new genome that you wish to use in this pipeline to the bottom of igenomes.config. 
+* You need to provide the name of a viral reference genome to '--genome'. You can either choose an already available name (e.g.'SARS-CoV-2') from the nf-core-viralevo/conf/igenomes.config file or add details of a new genome that you wish to use in this pipeline to the bottom of igenomes.config file. 
 
 ## Running the pipeline
 
