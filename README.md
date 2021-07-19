@@ -22,7 +22,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 7. Variant calling with LoFreq ([`LoFreq`](https://csb5.github.io/lofreq/))
 8. Variant calling with iVAR ([`iVAR`](https://github.com/andersen-lab/ivar))
 9. Variant annotation ([`SnpEff`](http://pcingola.github.io/SnpEff/))
-10. Make a variant table (csv) and produce files (vcf) with filtered variants
+10. Make a table (csv) for R display of the combined variant calls
+11. Write out a filtered VCF file for each input sample
 11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
 
 ## Quick Start
