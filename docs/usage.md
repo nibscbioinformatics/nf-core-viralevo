@@ -40,7 +40,7 @@ sample2,AEG588A1_S2_L002_R1_001.fastq.gz,,unstranded
 | `fastq_2`      | Full path to FastQ file for Illumina short reads 2. File has to be gzipped and have the extension ".fastq.gz" or ".fq.gz".  |
 | `strandedness` | Sample strand-specificity. Must be one of `unstranded`, `forward` or `reverse`.                                             |
 
-An [example samplesheet](../assets/samplesheet_test.csv) has been provided with the pipeline.
+An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
 ## Primer fasta file
 
