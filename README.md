@@ -20,7 +20,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
 5. Alignment-level QC ([`SAMtools`](https://sourceforge.net/projects/samtools/files/samtools/))
 6. Insert indel quality ([`LoFreq`](https://csb5.github.io/lofreq/commands)) 
 7. Variant calling with LoFreq ([`LoFreq`](https://csb5.github.io/lofreq/))
-8. Variant calling with iVAR ([`iVAR`](https://andersen-lab.github.io/ivar/html/manualpage.html))
+8. Variant calling with iVAR ([`iVAR`](https://github.com/andersen-lab/ivar))
 9. Variant annotation ([`SnpEff`](http://pcingola.github.io/SnpEff/))
 10. Make a variant table (csv) and produce files (vcf) with filtered variants
 11. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))
