@@ -74,6 +74,7 @@ The nf-core-viralevo pipeline comes with documentation about the pipeline [usage
 nf-core-viralevo was originally written by Ravneet Bhuller and Martin Gordon.
 
 Many thanks to others who have helped out along the way too, including (but not limited to):
+[@bleazard](https://github.com/bleazard) who wrote viralevo in DSL1 and 
 [@MartinFritzsche](https://github.com/MartinFritzsche)
 
 ## Citations
