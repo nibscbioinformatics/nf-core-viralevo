@@ -4,7 +4,7 @@
 
 This document describes the output produced by the pipeline.
 
-The directories listed below will be created in the results directory after the pipeline has finished. All paths are relative to the top-level results directory.
+The directories listed below will be created in the 'results' directory after the pipeline has finished. All paths are relative to the top-level 'results' directory.
 
 ## Pipeline overview
 
@@ -12,24 +12,24 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 * [Preprocessing](#preprocessing)
   * [FastQC](#fastqc) - Raw read QC
-  * [Cutadapt](#cutadapt) - Quality trimming
+  * [Cutadapt](#cutadapt) - Adapter and quality trimming
   * [FastQC](#fastqc) - Trimmed read QC
 * [Alignment](#alignment)
   * [BWA-mem](#bwa-mem) - Alignment to the reference genome
 * [Alignment post-processing](#alignment-post-processing)
   * [SAMtools](#samtools) - Sort and index alignments, and stats 
-  * [LoFreq indelqual](#lofreq_indelqual) - Indel quality insertion
-  * [SAMtools](#samtools) - Index indelqual bam and reference genome fasta
+  * [LoFreq indelqual](#lofreq_indelqual) - Indel quality insertion in the BAM files
+  * [SAMtools](#samtools) - Index bams (containing indel quality) and reference genome fasta
 * [Variant calling with LoFreq](#variant-calling-with-lofreq)
   * [LoFreq call-parallel](#lofreq_call-parallel) - Variant calling with LoFreq
 * [Variant calling with iVAR](#variant-calling-with-ivar)
-  * [iVAR trim](#ivar_trim) - Primer trimming, sort, index and stats on indelqual bams
+  * [iVAR trim](#ivar_trim) - Primer trimming, sort, index and stats on BAM files (containing indel quality)
   * [iVAR](#ivar) - Variant calling with iVAR
-  * [TSV2VCF](#tsv2vcf) - Convert tsv files to vcf
+  * [TSV2VCF](#tsv2vcf) - Convert TSV files to VCF format
 * [Variant annotation](#variant-annotation)
   * [SnpEff](#snpeff) - variant annotation
 * [Variant table generation](#variant-table-generation)
-* [Filtered vcf generation](#filtered-vcf-generation)   
+* [Filtered VCF generation](#filtered-vcf-generation)   
 * [Quality control](#quality-control)
   * [MultiQC](#multiqc) - Aggregate report describing results and QC from the pipeline
 * [Pipeline information](#pipeline-information) - Report metrics generated during the workflow execution
@@ -56,7 +56,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <summary>Output files</summary>
 
 * `QC/cutadapt/`
-  * `*.fastq.gz`: The trimmed/modified fastq reads. These files are NOT saved in the pipeline, therefore, you will not find them in the directory.
+  * `*.fastq.gz`: The trimmed/modified fastq reads. These files are NOT published in the pipeline, therefore, you will not find them in the directory.
   * `*.cutadapt.log`: Cutadapt log file containing number and percentage of basepairs processed and trimmed.
 
 </details>
@@ -136,7 +136,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <summary>Output files</summary>
 
 * `variants/lowfreq/call_parallel/`
-  * `*_lofreq.vcf`: vcf file containing variant calls
+  * `*_lofreq.vcf`: VCF file containing variant calls
 
 </details>
 
@@ -162,7 +162,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <summary>Output files</summary>
 
 * `variants/ivar/tsv/`
-  * `*tsv.`: tsv files containing variants calls with iVAR
+  * `*tsv.`: TSV files containing variants calls
 
 </details>
 
@@ -174,7 +174,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 <summary>Output files</summary>
 
 * `variants/ivar/tsv2vcf/`
-  * `*_ivar.vcf`: vcf files containing variants calls with iVAR
+  * `*_ivar.vcf`: VCF files containing variants calls
 
 </details>
 
@@ -213,7 +213,7 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 </details>
 
-## Qulaity control
+## Quality control
  
 ### MultiQC
 
