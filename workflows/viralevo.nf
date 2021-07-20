@@ -290,7 +290,7 @@ workflow VIRALEVO {
     //
     // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
     //
-    vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results2/variants/snpeff/vcf')
+    vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff/vcf')
     //vcf = Channel.fromPath('$launchDir/results2/variants/snpeff/vcf')
 
     MAKEVARTABLE (

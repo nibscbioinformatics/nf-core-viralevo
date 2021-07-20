@@ -2,7 +2,7 @@
 
 ## Introduction
 
-To run this pipeline, you will need three files: samplesheet.csv, primer fasta file and primer bed file.
+To run this pipeline, you will need three files: samplesheet.csv, adapter fasta file and primer bed file.
 You will also need a viral reference genome name.
 
 ## Samplesheet input
@@ -42,9 +42,9 @@ sample2,AEG588A1_S2_L002_R1_001.fastq.gz,,unstranded
 
 An [example samplesheet](../assets/samplesheet.csv) has been provided with the pipeline.
 
-## Primer fasta file
+## Adapter fasta file
 
-* You need to provide the path of a local primer fasta file to '--primer_fasta'.
+* You need to provide the path of a local adapter fasta file to '--primer_fasta'.
 
 ## Primer bed file
 
@@ -52,7 +52,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 
 ## Reference genome name
 
-* You need to provide the name of a viral reference genome to '--genome'. You can either choose an already available name (e.g.'SARS-CoV-2') from the nf-core-viralevo/conf/igenomes.config file or add details of a new genome that you wish to use in this pipeline to the bottom of igenomes.config file. 
+* You need to provide the name of a viral reference genome to '--genome'. You can either choose an already available name (e.g. SARS-CoV-2 or MT299802 to MT299805) from the nf-core-viralevo/conf/igenomes.config file or add details of a new genome that you wish to use in this pipeline to the bottom of igenomes.config file. 
 
 ## Running the pipeline
 
