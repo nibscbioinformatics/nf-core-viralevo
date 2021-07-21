@@ -286,17 +286,21 @@ workflow VIRALEVO {
     )
     ch_annotatedfortable = SNPEFF_ANN.out.vcf
     ch_software_versions = ch_software_versions.mix(SNPEFF_ANN.out.version.first().ifEmpty(null))
+    //ch_annotatedfortable.view()
+    ch_annotatedvcf = ch_annotatedfortable.flatten().filter( ~/^.*vcf/ )
+    //ch_annotatedvcf.view()
+    
 
     //
     // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
     //
-    vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff/vcf')
+    //vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results2/variants/snpeff/vcf')
     //vcf = Channel.fromPath('$launchDir/results2/variants/snpeff/vcf')
 
-    MAKEVARTABLE (
-        vcf, params.alt_depth_threshold, params.vaf_threshold
-    )    
-    ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
+    //MAKEVARTABLE (
+    //    vcf, params.alt_depth_threshold, params.vaf_threshold
+    //)    
+    //ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
     //ch_filtered_vcfs.view()
     
     //

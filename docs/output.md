@@ -187,6 +187,8 @@ The pipeline is built using [Nextflow](https://www.nextflow.io/) and processes d
 
 * `variants/snpeff/`
   * SnpEff `<SAMPLE>_<caller>.snpeff.csv`, `<SAMPLE>_<caller>.snpeff.genes.txt` and `<SAMPLE>_<caller>.snpeff.summary.html` files
+* `variants/snpeff/vcf`
+  *`<SAMPLE>_<caller>_annotated.vcf`: Annotated VCF files
 
 </details>
 
