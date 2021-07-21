@@ -73,7 +73,7 @@ The nf-core-viralevo pipeline comes with documentation about the pipeline [usage
 
 nf-core-viralevo was written by Ravneet Bhuller and Martin Gordon. It is a conversion of [viralevo](https://github.com/nibscbioinformatics/viralevo/tree/dev) DSL1 pipeline to DSL2.
 
-Many thanks to the following members who originally wrote [viralevo](https://github.com/nibscbioinformatics/viralevo/tree/dev) DSL1 pipeline:
+Many thanks to the members who originally wrote [viralevo](https://github.com/nibscbioinformatics/viralevo/tree/dev) DSL1 pipeline:
 [@bleazard](https://github.com/bleazard),
 [@lescai](https://github.com/lescai), 
 [@MartinFritzsche](https://github.com/MartinFritzsche) and 
