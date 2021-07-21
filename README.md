@@ -7,7 +7,7 @@
 
 ## Introduction
 
-**nf-core-viralevo** is a bioinformatics pipeline used to perform low-frequency variant calling for viral samples. It supports illumina short-read sequencing data.
+**nf-core-viralevo** is a bioinformatics pipeline used to perform low-frequency variant calling for viral samples. It supports illumina short-read sequencing data. This pipeline is constantly evolving!
 
 The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool to run tasks across multiple compute infrastructures in a very portable manner. It uses Docker/Singularity containers making installation trivial and results highly reproducible. The [Nextflow DSL2](https://www.nextflow.io/docs/latest/dsl2.html) implementation of this pipeline uses one container per process which makes it much easier to maintain and update software dependencies. Where possible, these processes have been submitted to and installed from [nf-core/modules](https://github.com/nf-core/modules) in order to make them available to all nf-core pipelines, and to everyone within the Nextflow community!
 
@@ -71,11 +71,13 @@ The nf-core-viralevo pipeline comes with documentation about the pipeline [usage
 
 ## Credits
 
-nf-core-viralevo was originally written by Ravneet Bhuller and Martin Gordon.
+nf-core-viralevo was written by Ravneet Bhuller and Martin Gordon. It is a conversion of [viralevo DSL1 pipeline](https://github.com/nibscbioinformatics/viralevo/tree/dev) to DSL2.
 
-Many thanks to others who have helped out along the way too, including (but not limited to):
-[@bleazard](https://github.com/bleazard) who wrote viralevo in DSL1 and 
-[@MartinFritzsche](https://github.com/MartinFritzsche)
+Many thanks to the following members who originally wrote viralevo DSL1 pipeline:
+[@bleazard](https://github.com/bleazard),
+[@lescai](https://github.com/lescai), 
+[@MartinFritzsche](https://github.com/MartinFritzsche) and 
+[@PedroRaposo](https://github.com/PedroRaposo).
 
 ## Citations
 
