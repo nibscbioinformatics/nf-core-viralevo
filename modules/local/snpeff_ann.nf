@@ -5,14 +5,14 @@ options        = initOptions(params.options)
 
 process SNPEFF_ANN {
     tag "$meta.id"
-    label 'process_medium'
+    label 'process_high'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
         saveAs: { filename -> saveFiles(filename:filename, options:params.options, publish_dir:getSoftwareName(task.process), meta:meta, publish_by_meta:['id']) }
 
     conda (params.enable_conda ? "bioconda::snpeff=5.0" : null)
     if (workflow.containerEngine == 'singularity' && !params.singularity_pull_docker_container) {
-        container "https://depot.galaxyproject.org/singularity/https://depot.galaxyproject.org/singularity/snpeff:5.0--hdfd78af_1"
+        container "https://depot.galaxyproject.org/singularity/snpeff:5.0--hdfd78af_1"
     } else {
         container "quay.io/biocontainers/quay.io/biocontainers/snpeff:5.0--hdfd78af_1"
     }
@@ -48,6 +48,7 @@ process SNPEFF_ANN {
         -csvStats ${prefix}_${caller}.snpeff.csv \\
         > ${prefix}_${caller}_annotated.vcf
     mv snpEff_summary.html ${prefix}_${caller}.snpeff.summary.html
+
     echo \$(snpEff -version 2>&1) | sed 's/^.*snpEff //; s/Using.*\$//' > ${software}.version.txt
     """
 }
