@@ -10,7 +10,7 @@ def summary_params = NfcoreSchema.paramsSummaryMap(workflow, params)
 WorkflowViralevo.initialise(params, log)
 
 // Check input path parameters to see if they exist
-def checkPathParamList = [ params.input, params.fasta, params.gff, params.multiqc_config, params.primer_fasta, params.primer_bed ]
+def checkPathParamList = [ params.input, params.fasta, params.gff, params.multiqc_config, params.adapter_fasta, params.primer_bed ]
 for (param in checkPathParamList) { if (param) { file(param, checkIfExists: true) } }
 
 // Check mandatory parameters
@@ -38,7 +38,7 @@ if (params.genome_rmodel) { ch_genome_rmodel = Channel.value(file(params.genome_
 
 ch_primer_bed = params.primer_bed ? Channel.value(file(params.primer_bed)) : "null"
 
-ch_primer_fasta = params.primer_fasta ? Channel.value(file(params.primer_fasta)) : "null"
+ch_adapter_fasta = params.adapter_fasta ? Channel.value(file(params.adapter_fasta)) : "null"
 
 
 /*
@@ -147,7 +147,7 @@ workflow VIRALEVO {
     // MODULE: CUTADAPT for adapter and quality trimming
     //
     CUTADAPT (
-        ch_fastq, ch_primer_fasta
+        ch_fastq, ch_adapter_fasta
     )
     ch_trimmed_reads = CUTADAPT.out.reads
     ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.first().ifEmpty(null)) 

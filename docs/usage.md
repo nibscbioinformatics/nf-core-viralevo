@@ -44,7 +44,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 
 ## Adapter fasta file
 
-* You need to provide the path of a local adapter fasta file to '--primer_fasta'.
+* You need to provide the path of a local adapter fasta file to '--adapter_fasta'.
 
 ## Primer bed file
 
@@ -59,7 +59,7 @@ An [example samplesheet](../assets/samplesheet.csv) has been provided with the p
 The typical command for running the pipeline is as follows:
 
 ```bash
-NXF_SINGULARITY_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo --input '/path/to/samplesheet.csv' --primer_fasta 'path/to/the/adapter-fasta' --primer_bed '/path/to/primer-bed' --genome 'genomename' -profile singularity
+NXF_SINGULARITY_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo --input '/path/to/samplesheet.csv' --adapter_fasta 'path/to/the/adapter-fasta' --primer_bed '/path/to/primer-bed' --genome 'genomename' -profile singularity --outdir '/path/to/results-folder'
 ```
 
 This will launch the pipeline with the `singularity` configuration profile. See below for more information about profiles.

@@ -42,13 +42,13 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     * If you are using `singularity` then the pipeline will auto-detect this and attempt to download the Singularity images directly as opposed to performing a conversion from Docker images. If you are persistently observing issues downloading Singularity images directly due to timeout or network issues then please use the `--singularity_pull_docker_container` parameter to pull and convert the Docker image instead. It is also highly recommended to use the [`NXF_SINGULARITY_CACHEDIR` or `singularity.cacheDir`](https://www.nextflow.io/docs/latest/singularity.html?#singularity-docker-hub) settings to store the images in a central location for future pipeline runs as shown below:
 
     ```bash
-    NXF_SINGULARITY_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo -profile test,singularity
+    NXF_SINGULARITY_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo -profile test,singularity --outdir /results
     ```
 
     * If you are using `conda`, it is highly recommended to use the [`NXF_CONDA_CACHEDIR` or `conda.cacheDir`](https://www.nextflow.io/docs/latest/conda.html) settings to store the environments in a central location for future pipeline runs as shown below:
 
     ```bash
-    NXF_CONDA_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo -profile test,conda
+    NXF_CONDA_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo -profile test,conda --outdir /results
     ```
 
 4. Start running your own analysis!
@@ -57,9 +57,10 @@ The pipeline is built using [Nextflow](https://www.nextflow.io), a workflow tool
     ```console
     NXF_SINGULARITY_CACHEDIR=/path/to/central/location nextflow run nf-core-viralevo \
         --input '[/path/to/samplesheet.csv]' \
-        --primer_fasta '[/path/to/primer.fasta]' \
+        --adapter_fasta '[/path/to/adapter.fasta]' \
         --primer_bed '[/path/to/primer.bed]' \
         --genome '[viral_reference_genome_name]' \
+        --outdir '[/path/to/output/folder]' \
         -profile singularity
     ```
     * Further details about the format of samplesheet.csv can be seen in the [usage](https://github.com/nibscbioinformatics/nf-core-viralevo/blob/master/docs/usage.md) document.
