@@ -8,8 +8,8 @@ params.tabix_bgzip_options          = [:]
 params.tabix_tabix_options          = [:]
 params.bcftools_stats_options       = [:]
 
+include { IVAR_VARIANTS         } from '../../modules/nf-core/modules/ivar/variants/main'  addParams( options: params.ivar_variants_options        )
 include { IVAR_VARIANTS_TO_VCF  } from '../../modules/local/ivar_variants_to_vcf'           addParams( options: params.ivar_variants_to_vcf_options )
-include { IVAR_VARIANTS         } from '../../modules/nf-core/software/ivar/variants/main'  addParams( options: params.ivar_variants_options        )
 include { VCF_BGZIP_TABIX_STATS } from '../nf-core/vcf_bgzip_tabix_stats'                   addParams( bgzip_options: params.tabix_bgzip_options, tabix_options: params.tabix_tabix_options, stats_options: params.bcftools_stats_options )
 
 workflow VARIANTS_IVAR {
@@ -20,17 +20,8 @@ workflow VARIANTS_IVAR {
     ivar_multiqc_header // channel: /path/to/multiqc_header for ivar variants
 
     main:
-
-    //
-    // Call variants
-    //
     IVAR_VARIANTS ( bam, fasta, gff )
-
-    //
-    // Convert original iVar output to VCF, zip and index
-    //
-    IVAR_VARIANTS_TO_VCF ( IVAR_VARIANTS.out.tsv, ivar_multiqc_header )
-
+    IVAR_VARIANTS_TO_VCF ( IVAR_VARIANTS.out.tsv, ivar_multiqc_header ) // Convert original iVar output to VCF, zip and index
     VCF_BGZIP_TABIX_STATS ( IVAR_VARIANTS_TO_VCF.out.vcf )
 
 

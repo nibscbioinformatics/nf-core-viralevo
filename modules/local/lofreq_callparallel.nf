@@ -36,7 +36,7 @@ process LOFREQ_CALLPARALLEL {
         --pp-threads ${task.cpus} \\
         -f $fasta \\
         -o ${prefix}.vcf \\
-        $bam
+        --call-indels $bam
 
     echo \$(lofreq version 2>&1) | sed 's/^.*lofreq //; s/Using.*\$//' > ${software}.version.txt
     """

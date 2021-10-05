@@ -3,7 +3,7 @@ include { saveFiles } from './functions'
 params.options = [:]
 
 process MAKEVARTABLE {
-    tag "$vcfDir"
+    tag "Creating Variant Table for R.."
     label 'process_low'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -18,16 +18,16 @@ process MAKEVARTABLE {
 
 
     input:
-    path vcfDir
+    path vcf
     val alt_depth_threshold
     val vaf_threshold
 
     output:
-    path "varianttable.csv", emit: csv
+    path "variant-table.csv", emit: csv
     path ("*_filtered.vcf"), emit: filteredvars
 
     script:
     """
-    python $projectDir/bin/tablefromvcf.py $vcfDir varianttable.csv ${alt_depth_threshold} ${vaf_threshold} 
+    python $projectDir/bin/tablefromvcf.py . variant-table.csv ${alt_depth_threshold} ${vaf_threshold}
     """
 }

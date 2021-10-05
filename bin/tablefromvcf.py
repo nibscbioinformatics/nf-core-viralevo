@@ -25,10 +25,10 @@ basicpassproportion = float(sys.argv[4]) #0.01
 fileout.write("Sample,Caller,Region,Position,Ref,Alt,Ref_Reads,Alt_Reads,Proportion,Basic_Pass,Gene\n")
 
 for infile in infiles:
-    if ("_lofreq_annotated.vcf" in infile) or ("_lofreq.vcf" in infile):
+    if ("_lofreq.snpeff.vcf" in infile) or ("_lofreq.vcf" in infile): # maybe write a smarter regex here to detect lofreq and .vcf instead of hardcoding
         filein = open(varcallsdir+"/"+infile)
         caller = "lofreq"
-        samplename = infile.replace("_lofreq_annotated.vcf","").replace("_lofreq.vcf","")
+        samplename = infile.replace("_lofreq.snpeff.vcf","").replace("_lofreq.vcf","")
         vcfout = open(samplename+"_"+caller+"_filtered.vcf", "w")
         for line in filein:
             if line[0] == "#":
@@ -46,17 +46,17 @@ for infile in infiles:
             basicpass = (int(altdepth) >= basicpassalt) and (float(proportion) >= basicpassproportion) and (truevar)
             if basicpass:
                 vcfout.write(line)
-            if ("_lofreq_annotated.vcf" in infile):
+            if ("_lofreq.snpeff.vcf" in infile):
               gene = collect[7].split(";ANN=")[1].split("|")[3]
             else:
               gene = "NA"
             fileout.write(",".join([samplename,caller,chromosome,position,ref,alt,str(refdepth),str(altdepth),str(proportion),str(basicpass),gene])+"\n")
         filein.close()
         vcfout.close()
-    if ("_ivar_annotated.vcf" in infile) or ("_ivar.vcf" in infile):
+    if ("_ivar.snpeff.vcf" in infile) or ("_ivar.vcf" in infile):
         filein = open(varcallsdir+"/"+infile)
         caller = "ivar"
-        samplename = infile.replace("_ivar_annotated.vcf","").replace("_ivar.vcf","")
+        samplename = infile.replace("_ivar.snpeff.vcf","").replace("_ivar.vcf","")
         vcfout = open(samplename+"_"+caller+"_filtered.vcf", "w")
         for line in filein:
             if line[0] == "#":
@@ -76,7 +76,7 @@ for infile in infiles:
             basicpass = (int(altdepth) >= basicpassalt) and (float(proportion) >= basicpassproportion) and (truevar)
             if basicpass:
                 vcfout.write(line)
-            if ("_ivar_annotated.vcf" in infile):
+            if ("_ivar.snpeff.vcf" in infile):
               gene = collect[7].split(";ANN=")[1].split("|")[3]
             else:
               gene = "NA"

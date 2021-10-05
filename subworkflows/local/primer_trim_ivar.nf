@@ -5,9 +5,8 @@
 params.ivar_trim_options = [:]
 params.samtools_options  = [:]
 
-include { IVAR_TRIM         } from '../../modules/nf-core/software/ivar/trim/main'      addParams( options: params.ivar_trim_options )
-include { SAMTOOLS_INDEX    } from '../../modules/nf-core/software/samtools/index/main' addParams( options: params.samtools_options  )
-include { BAM_SORT_SAMTOOLS } from '../nf-core/bam_sort_samtools'                       addParams( options: params.samtools_options  )
+include { IVAR_TRIM         } from '../../modules/nf-core/modules/ivar/trim/main'      addParams( options: params.ivar_trim_options )
+include { BAM_SORT_SAMTOOLS } from '../nf-core/bam_sort_samtools'                      addParams( options: params.samtools_options  )
 
 workflow PRIMER_TRIM_IVAR {
     take:
@@ -33,8 +32,8 @@ workflow PRIMER_TRIM_IVAR {
 
     bam              = BAM_SORT_SAMTOOLS.out.bam      // channel: [ val(meta), [ bam ] ]
     bai              = BAM_SORT_SAMTOOLS.out.bai      // channel: [ val(meta), [ bai ] ]
-    stats            = BAM_SORT_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ]
-    flagstat         = BAM_SORT_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
-    idxstats         = BAM_SORT_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
+    //stats            = BAM_SORT_SAMTOOLS.out.stats    // channel: [ val(meta), [ stats ] ] turn these off for now.. maybe add in later
+    //flagstat         = BAM_SORT_SAMTOOLS.out.flagstat // channel: [ val(meta), [ flagstat ] ]
+    //idxstats         = BAM_SORT_SAMTOOLS.out.idxstats // channel: [ val(meta), [ idxstats ] ]
     samtools_version = BAM_SORT_SAMTOOLS.out.version  //    path: *.version.txt
 }

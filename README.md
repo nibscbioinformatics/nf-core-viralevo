@@ -87,3 +87,21 @@ You can cite the `nf-core` publication as follows:
 > Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.
 >
 > _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).
+
+## Changelog 
+
+**Pipeline modifications for dev_mg branch**
+
+- Created a snpeff-build module to construct the anotation databases using gff and fasta files.
+- Modified snp-ann module 
+- Downloaded from genbank fasta and gff files for the Chikungunya virus and placed in data folder 
+- Created Rmodel for Chikungunya virus
+- Edited logger.py script; created trimlog module 
+- Created alignmentlog module 
+- Added read groups to bwa-mem process (I have modified the module code. Alternaitvely, adjust the parse samplesheet function to consider boolean readgroup column) 
+- Subworkflow created to lofreq indelqual, samtools index, stats on sorted bam files 
+- Added '--call-indels' arguument to lofreq call-parallel 
+- Created module to calculate read depth at each position in bam files (do_depth module) 
+- Simplified samtools subworkflow for ivar bam files 
+- Made annotation process optional 
+- Fixed makevartable module; modified tablefromvcf.py script and altered input channel for module

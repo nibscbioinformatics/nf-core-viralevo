@@ -21,6 +21,24 @@ if (params.virus_reference && params.genome && !params.virus_reference.containsK
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
 }
 
+// TODO remove if rest works
+// Stage dummy file to be used as an optional input where required
+//ch_dummy_file = Channel.fromPath("$projectDir/assets/dummy_file.txt", checkIfExists: true).collect()
+
+
+// TODO create save reference param (see sarek) to save index files etc
+// TODO check if possible to provide cache/path to pre-installed snpeff dataset
+
+// TODO add readgroups to bwa mem using more robust method
+
+// Initialize value channels based on params,
+//Creating value channels for reference files
+//params.snpeff_db = params.genome ? params.virus_reference[params.genome].snpeff_db ?: null : null
+//snpeff_db         = params.snpeff_db         ?: ''
+//snpeff_cache      = params.snpeff_cache      ? Channel.fromPath(params.snpeff_cache).collect()      : ch_dummy_file
+
+
+
 //Creating value channels for reference files
 params.gff = params.genome ? params.virus_reference[params.genome].gff ?: null : null
 if (params.gff) { ch_annotation = Channel.value(file(params.gff, checkIfExists: true)) }
@@ -39,6 +57,8 @@ if (params.genome_rmodel) { ch_genome_rmodel = Channel.value(file(params.genome_
 ch_primer_bed = params.primer_bed ? Channel.value(file(params.primer_bed)) : "null"
 
 ch_adapter_fasta = params.adapter_fasta ? Channel.value(file(params.adapter_fasta)) : "null"
+
+ch_genome_version = params.genome_version ? Channel.value(params.genome_version) : "null"
 
 
 /*
@@ -62,12 +82,21 @@ def modules = params.modules.clone()
 def multiqc_options   = modules['multiqc']
 multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 
+// Dont want to rewrite module code, so add readgroup here
+// TODO check this works, compare to viralevo
+//def bwamem2_options   = modules['bwamem2_mem']
+// bwamem2_options.args += "-R '@RG\\tID:${prefix}\\tSM:${prefix}\\tPL:Illumina'"
+
 //
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['csv':'']]  )
+include { TRIMLOG               } from '../modules/local/trimlog'               addParams( options: modules['trimlog'] )
 include { LOFREQ_INDELQUAL      } from '../modules/local/lofreq_indelqual'      addParams( options: modules['lofreq_indelqual']   )
+include { ALIGNMENTLOG          } from '../modules/local/alignmentlog'          addParams( options: modules['alignmentlog'] )
 include { LOFREQ_CALLPARALLEL   } from '../modules/local/lofreq_callparallel'   addParams( options: modules['lofreq_callparallel'])
+include { DO_DEPTH              } from '../modules/local/do_depth'              addParams( options: modules['do_depth']          )
+include { SNPEFF_BUILD          } from '../modules/local/snpeff_build'          addParams( options: modules['snpeff_build' ]    )
 include { SNPEFF_ANN            } from '../modules/local/snpeff_ann'            addParams( options: modules['snpeff_ann' ]        )
 include { TSV2VCF               } from '../modules/local/tsv2vcf'               addParams( options: modules['tsv2vcf' ]           )
 include { MAKEVARTABLE          } from '../modules/local/makevartable'          addParams( options: modules['makevartable' ]      )
@@ -75,7 +104,10 @@ include { MAKEVARTABLE          } from '../modules/local/makevartable'          
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK      } from '../subworkflows/local/input_check'      addParams( options: [:] )
+include { INPUT_CHECK           } from '../subworkflows/local/input_check'      addParams( options: [:] )
+include { LOFREQ_INDEX_FLAGSTAT    } from '../subworkflows/local/lofreq_index_flagstat'      addParams( lofreq_indelqual_options: modules['lofreq_indelqual'], index_options: modules['samtools_index'], flagstat_options: modules['samtools_flagstat'] )
+
+
 include { PRIMER_TRIM_IVAR } from '../subworkflows/local/primer_trim_ivar' addParams( ivar_trim_options: modules['ivar_trim'], samtools_options: modules['ivar_trim_sort_bam'] )
 include { CONSENSUS_FASTA  } from '../subworkflows/local/consensus_fasta'  addParams( cut_vcf_options: modules['cut_vcf'], bcftools_norm_options: modules['bcftools_norm'], bcftools_view_options: modules['bcftools_view'], bcftools_index_options: modules['bcftools_index'], bcftools_consensus_options: modules['bcftools_consensus'] )
 
@@ -91,16 +123,20 @@ include { CONSENSUS_FASTA  } from '../subworkflows/local/consensus_fasta'  addPa
 //
 // MODULE: Installed directly from nf-core/modules
 //
-include { FASTQC as FASTQC_RAW                       } from '../modules/nf-core/software/fastqc/main'         addParams( options: modules['fastqc_raw']               )
-include { CUTADAPT                                   } from '../modules/nf-core/software/cutadapt/main'       addParams( options: modules['cutadapt']                 )
-include { FASTQC as FASTQC_TRIMMED                   } from '../modules/nf-core/software/fastqc/main'         addParams( options: modules['fastqc_trimmed']           )
-include { BWAMEM2_INDEX                              } from '../modules/nf-core/software/bwamem2/index/main'  addParams( options: modules['bwamem2_index']            )
-include { BWAMEM2_MEM                                } from '../modules/nf-core/software/bwamem2/mem/main'    addParams( options: modules['bwamem2_mem']              )
-include { SAMTOOLS_INDEX                             } from '../modules/nf-core/software/samtools/index/main' addParams( options: modules['samtools_index']           ) 
-include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_INDELQUAL } from '../modules/nf-core/software/samtools/index/main' addParams( options: modules['samtools_index_indelqual'] )
-include { SAMTOOLS_FAIDX                             } from '../modules/nf-core/software/samtools/faidx/main' addParams( options: modules['samtools_faidx']           )
-include { IVAR_VARIANTS                              } from '../modules/nf-core/software/ivar/variants/main'  addParams( options: modules['ivar_variants']            )
-include { MULTIQC                                    } from '../modules/nf-core/software/multiqc/main'        addParams( options: [:]                                 )
+include { FASTQC as FASTQC_RAW                       } from '../modules/nf-core/modules/fastqc/main'         addParams( options: modules['fastqc_raw']               )
+include { CUTADAPT                                   } from '../modules/nf-core/modules/cutadapt/main'       addParams( options: modules['cutadapt']                 )
+include { FASTQC as FASTQC_TRIMMED                   } from '../modules/nf-core/modules/fastqc/main'         addParams( options: modules['fastqc_trimmed']           )
+include { BWAMEM2_INDEX                              } from '../modules/nf-core/modules/bwamem2/index/main'  addParams( options: modules['bwamem2_index']            )
+include { BWAMEM2_MEM                                } from '../modules/nf-core/modules/bwamem2/mem/main'    addParams( options: modules['bwamem2_mem']              )  // altered module code
+// seperated samtools workflow to sort bwa-mem bam but run stats on indelqual out (following viralevo DSL1)
+include { SAMTOOLS_SORT                              } from '../modules/nf-core/modules/samtools/sort/main' addParams( options: modules['samtools_sort']          )
+
+include { SAMTOOLS_INDEX                             } from '../modules/nf-core/modules/samtools/index/main' addParams( options: modules['samtools_index']           )
+include { SAMTOOLS_INDEX as SAMTOOLS_INDEX_INDELQUAL } from '../modules/nf-core/modules/samtools/index/main' addParams( options: modules['samtools_index_indelqual'] )
+include { SAMTOOLS_FAIDX                             } from '../modules/nf-core/modules/samtools/faidx/main' addParams( options: modules['samtools_faidx']           )
+include { IVAR_VARIANTS                              } from '../modules/nf-core/modules/ivar/variants/main'  addParams( options: modules['ivar_variants']            )
+include { SNPEFF                                     } from '../modules/nf-core/modules/snpeff/main'         addParams( options: modules['snpeff']                   )
+include { MULTIQC                                    } from '../modules/nf-core/modules/multiqc/main'        addParams( options: [:]                                 )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -134,7 +170,11 @@ workflow VIRALEVO {
             [ meta, fastq ] }
     .set { ch_fastq }
     //ch_fastq.view()
-  
+
+///////////////////
+// QC & Trimming
+//////////////////
+
     //
     // MODULE: Run FastQC on raw reads
     //
@@ -147,11 +187,21 @@ workflow VIRALEVO {
     // MODULE: CUTADAPT for adapter and quality trimming
     //
     CUTADAPT (
-        ch_fastq, ch_adapter_fasta
+        ch_fastq,
+        ch_adapter_fasta
     )
     ch_trimmed_reads = CUTADAPT.out.reads
-    ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.first().ifEmpty(null)) 
-   
+    ch_trim_logs     = CUTADAPT.out.log.collect{it[1]}
+    ch_software_versions = ch_software_versions.mix(CUTADAPT.out.version.first().ifEmpty(null))
+
+    //
+    // Trimming Log: Output CSV table of trimming stats for reading in R
+    //
+    // TODO there is a dot after the name in output file.. correct to make sure it doesnt impact downstream
+    TRIMLOG (
+        ch_trim_logs
+    )
+
     //
     // MODULE: Run FASTQC on trimmed reads
     //
@@ -159,6 +209,11 @@ workflow VIRALEVO {
         ch_trimmed_reads
     )
     ch_software_versions = ch_software_versions.mix(FASTQC_TRIMMED.out.version.first().ifEmpty(null))
+
+
+///////////////////
+// Index References
+//////////////////
 
     //
     // MODULE: Create reference genome index using BWA-MEM
@@ -169,50 +224,6 @@ workflow VIRALEVO {
     ch_index = BWAMEM2_INDEX.out.index
     ch_software_versions = ch_software_versions.mix(BWAMEM2_INDEX.out.version.first().ifEmpty(null))
 
-    //
-    // MODULE: Alignment using BWA-MEM
-    //
-    BWAMEM2_MEM (
-        ch_trimmed_reads, ch_index
-    )
-    ch_bam = BWAMEM2_MEM.out.bam
-
-    //
-    // SUBWORKFLOW: Sort, index and stats on bam files using SAMTOOLS
-    //
-    BAM_SORT_SAMTOOLS (
-        ch_bam
-    )
-    bam = BAM_SORT_SAMTOOLS.out.bam
-    ch_software_versions = ch_software_versions.mix(BAM_SORT_SAMTOOLS.out.version.first().ifEmpty(null))    
-
-    //
-    // SUBWORKFLOW: Mark duplicate reads using PICARD and stats
-    //
-    //MARK_DUPLICATES_PICARD (
-    //    bam
-    //)
-    //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
-    //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-    //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-    //ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
- 
-    //
-    // MODULE: Insert indel quality using LOFREQ
-    //
-    LOFREQ_INDELQUAL (
-        bam, ch_fasta
-    )
-    ch_indelqual_bam          = LOFREQ_INDELQUAL.out.bam
-    ch_software_versions      = ch_software_versions.mix(LOFREQ_INDELQUAL.out.version.first().ifEmpty(null)) 
-
-    //
-    // MODULE: Run SAMTOOLS to index indelqual bam
-    //
-    SAMTOOLS_INDEX_INDELQUAL (
-        ch_indelqual_bam
-    )
-    ch_indelqual_bam_bai =  SAMTOOLS_INDEX_INDELQUAL.out.bai
 
     //
     // MODULE: Run SAMTOOLS to index reference fasta
@@ -222,37 +233,97 @@ workflow VIRALEVO {
     )
     ch_fasta_fai = SAMTOOLS_FAIDX.out.fai
 
+
+//////////////////
+// Alignment & Bam Stats
+//////////////////
+
+
+    //
+    // MODULE: Alignment using BWA-MEM
+    //
+    BWAMEM2_MEM (
+        ch_trimmed_reads,
+        ch_index
+    )
+    ch_bam = BWAMEM2_MEM.out.bam
+
+    //
+    // MODULE: Sort bam file using samtools sort
+    //
+    SAMTOOLS_SORT (
+        ch_bam
+    )
+    ch_sorted_bam = SAMTOOLS_SORT.out.bam
+
+    // Incorporated module into subworkflow below
+    //
+    // MODULE: Insert indel quality using LOFREQ
+    //
+    //LOFREQ_INDELQUAL (
+    //    ch_sorted_bam, ch_fasta
+    //)
+    //ch_indelqual_bam          = LOFREQ_INDELQUAL.out.bam
+    // ch_software_versions      = ch_software_versions.mix(LOFREQ_INDELQUAL.out.version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: LoFreq indelqual, index and stats on indelqual bam files using SAMTOOLS
+    //
+    LOFREQ_INDEX_FLAGSTAT (
+        ch_sorted_bam,
+        ch_fasta
+    )
+    ch_indelqual_bam = LOFREQ_INDEX_FLAGSTAT.out.bam
+    ch_indelqual_bai = LOFREQ_INDEX_FLAGSTAT.out.bai
+    ch_alignment_stats = LOFREQ_INDEX_FLAGSTAT.out.flagstat.collect{it[1]}
+    ch_software_versions = ch_software_versions.mix(LOFREQ_INDEX_FLAGSTAT.out.version.first().ifEmpty(null))
+
+    //
+    // MODULE: Alignment Log: Output CSV table of samtools alignment stats for reading in R
+    //
+    ALIGNMENTLOG (
+        ch_alignment_stats
+    )
+
+///////////////
+// LoFreq Variant Calling
+//////////////
+
     //
     // MODULE: Run LOFREQ on indelqual_bam for variant calling
     //
+    // TODO why does this module take in 4 inputs but use only 2?
     LOFREQ_CALLPARALLEL (
-        ch_indelqual_bam, ch_indelqual_bam_bai, ch_fasta, ch_fasta_fai 
+        ch_indelqual_bam,
+        ch_indelqual_bai,
+        ch_fasta,
+        ch_fasta_fai
     )
     ch_lofreq_variants = LOFREQ_CALLPARALLEL.out.vcf
-    //ch_lofreq_variants.view()
 
     //
-    // SUBWORKFLOW: Run IVAR for primer trimming and SAMTOOLS to sort, index and stats on indelqual_bam files 
+    // MODULE: Generate depth for LoFreq variant calls (Only for small genomes)
     //
-    ch_indelqual_bam_and_bai = ch_indelqual_bam.join(ch_indelqual_bam_bai, by: [0])
+    DO_DEPTH (
+        ch_indelqual_bam.collect{it[1]},
+        ch_indelqual_bai.collect{it[1]}
+    )
+
+///////////////////
+// iVAR Variant Calling
+// https://andersen-lab.github.io/ivar/html/manualpage.html
+//////////////////
+
+    //
+    // SUBWORKFLOW: Run IVAR for primer trimming and SAMTOOLS to sort, index and stats on indelqual_bam files
+    //
+    ch_indelqual_bam_and_bai = ch_indelqual_bam.join(ch_indelqual_bai, by: [0])
 
     PRIMER_TRIM_IVAR (
-        ch_indelqual_bam_and_bai, ch_primer_bed
+        ch_indelqual_bam_and_bai,
+        ch_primer_bed
     )
-    ch_primer_trimmed_sorted_bam = PRIMER_TRIM_IVAR.out.bam        
-    
-    //
-    // MODULE: Mark duplicate reads using PICARD
-    //
-    //MARK_DUPLICATES_PICARD_IVAR (
-    //    ch_primer_trimmed_sorted_bam
-    //)
-    //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
-    //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-    //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-    //ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
-
-
+    ch_primer_trimmed_sorted_bam = PRIMER_TRIM_IVAR.out.bam
 
     //
     // MODULE: Call variants with IVAR
@@ -261,7 +332,6 @@ workflow VIRALEVO {
         ch_primer_trimmed_sorted_bam, ch_fasta, ch_annotation
     )
     ch_ivar_variants     = IVAR_VARIANTS.out.tsv
-    //ch_ivar_variants.view()
     ch_software_versions = ch_software_versions.mix(IVAR_VARIANTS.out.version.first().ifEmpty(null))
 
     //
@@ -276,20 +346,107 @@ workflow VIRALEVO {
     // Merge variant calls from LOFREQ and IVAR
     //
     merged_ch = ch_lofreq_variants.mix(ch_ivar2vcf)
-    //merged_ch.view()
+
+/////////////////////////
+// SNPEff Annotation
+////////////////////////
+
+    //
+    // MODULE: Build SNP Annotation DB from gff and fasta
+    //
+
+    if (!params.noannotation) {
+
+
+    SNPEFF_BUILD (
+        ch_fasta,
+        ch_annotation
+    )
+    ch_snpeff_db = SNPEFF_BUILD.out.db
+    ch_snpeff_config = SNPEFF_BUILD.out.config
 
     //
     // MODULE: Run snpEff to annotate merged variants
     //
     SNPEFF_ANN (
-        merged_ch, params.genome_version
+        merged_ch,
+        ch_snpeff_db,
+        ch_snpeff_config,
+        ch_fasta
     )
-    ch_annotatedfortable = SNPEFF_ANN.out.vcf
+    ch_vcffortable = SNPEFF_ANN.out.vcf.collect{it[1]}
     ch_software_versions = ch_software_versions.mix(SNPEFF_ANN.out.version.first().ifEmpty(null))
-    //ch_annotatedfortable.view()
-    ch_annotatedvcf = ch_annotatedfortable.flatten().filter( ~/^.*vcf/ )
-    //ch_annotatedvcf.view()
-    
+    ch_annotatedvcf = ch_vcffortable.flatten().filter( ~/^.*vcf/ ) // flattens into one elemenbt, only vcf files... not really sure what this is for yet
+    } else {
+        ch_vcffortable = merged_ch.collect{it[1]} // if no annotation process simply use merged table for input in report processes
+    }
+
+/////////////////////////
+// Reporting
+////////////////////////
+
+
+    //
+    // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
+    //
+    //vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff/vcf')
+    //vcf = Channel.fromPath( './results/variants/snpeff/vcf', type: 'dir' )
+
+
+
+    MAKEVARTABLE (
+        ch_vcffortable,
+        params.alt_depth_threshold,
+        params.vaf_threshold
+    )
+    ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
+    ch_filtered_vcfs.view()
+
+
+
+
+    //
+    // SUBWORKFLOW: Index and stats on indelqual bam files using SAMTOOLS
+    //
+    //BAM_SORT_SAMTOOLS (
+    //    ch_indelqual_bam
+    //)
+    //bam = BAM_SORT_SAMTOOLS.out.bam
+    //ch_software_versions = ch_software_versions.mix(BAM_SORT_SAMTOOLS.out.version.first().ifEmpty(null))
+
+    //
+    // SUBWORKFLOW: Mark duplicate reads using PICARD and stats
+    //
+    //MARK_DUPLICATES_PICARD (
+    //    bam
+    //)
+    //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
+    //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
+    //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
+    //ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
+
+    //
+    // MODULE: Run SAMTOOLS to index indelqual bam
+    //
+   // SAMTOOLS_INDEX_INDELQUAL (
+    //    ch_indelqual_bam
+    //)
+    ///ch_indelqual_bam_bai =  SAMTOOLS_INDEX_INDELQUAL.out.bai
+
+
+    //ch_lofreq_variants.view()
+
+    //
+    // MODULE: Mark duplicate reads using PICARD
+    //
+    //MARK_DUPLICATES_PICARD_IVAR (
+    //    ch_primer_trimmed_sorted_bam
+    //)
+    //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
+    //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
+    //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
+    //ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
+
 
     //
     // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
@@ -299,18 +456,18 @@ workflow VIRALEVO {
 
     //MAKEVARTABLE (
     //    ch_annotatedfortable, params.alt_depth_threshold, params.vaf_threshold
-    //)    
+    //)
     //ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
     //ch_filtered_vcfs.view()
-    
+
     //
     // Subworkflow: Build a consensus using bcftools from the filtered vcfs
     //
     //CONSENSUS_FASTA (
     //    ch_filtered_vcfs, ch_fasta
-    //) 
+    //)
     //CONSENSUS_FASTA.out.view_out.view()
-    
+
     //
     // MODULE: Pipeline reporting
     //
