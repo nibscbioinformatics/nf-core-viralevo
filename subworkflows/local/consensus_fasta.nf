@@ -37,7 +37,7 @@ workflow CONSENSUS_FASTA {
     BCFTOOLS_VIEW ( BCFTOOLS_NORM.out.vcf )
     BCFTOOLS_VIEW.out.vcf.map { file ->
         def meta = [:]
-        meta.id =  "id:"+file.baseName[0..-5]
+        meta.id =  file.baseName[0..-5]
         return tuple(meta, file) } // changed meta.id to metals wo
         .groupTuple()
         .set { ch_vcf }
@@ -49,7 +49,7 @@ workflow CONSENSUS_FASTA {
     //BCFTOOLS_INDEX.out.index.view()
     BCFTOOLS_INDEX.out.index.map { file ->
         def meta = [:]
-        meta.id =  "id:"+file.baseName[0..-8]
+        meta.id =  file.baseName[0..-8]
         return tuple(meta, file) }
         .groupTuple()
         .set { ch_index }

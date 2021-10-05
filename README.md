@@ -105,3 +105,6 @@ You can cite the `nf-core` publication as follows:
 - Simplified samtools subworkflow for ivar bam files 
 - Made annotation process optional 
 - Fixed makevartable module; modified tablefromvcf.py script and altered input channel for module
+- Modified consensus calling subworkflow to generate meta map; slight modification to bcftools consensus module 
+- Created change_fasta_name module and process
+

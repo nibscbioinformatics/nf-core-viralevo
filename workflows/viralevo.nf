@@ -91,15 +91,16 @@ multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"
 // MODULE: Local to the pipeline
 //
 include { GET_SOFTWARE_VERSIONS } from '../modules/local/get_software_versions' addParams( options: [publish_files : ['csv':'']]  )
-include { TRIMLOG               } from '../modules/local/trimlog'               addParams( options: modules['trimlog'] )
+include { TRIMLOG               } from '../modules/local/trimlog'               addParams( options: modules['trimlog']            )
 include { LOFREQ_INDELQUAL      } from '../modules/local/lofreq_indelqual'      addParams( options: modules['lofreq_indelqual']   )
-include { ALIGNMENTLOG          } from '../modules/local/alignmentlog'          addParams( options: modules['alignmentlog'] )
+include { ALIGNMENTLOG          } from '../modules/local/alignmentlog'          addParams( options: modules['alignmentlog']       )
 include { LOFREQ_CALLPARALLEL   } from '../modules/local/lofreq_callparallel'   addParams( options: modules['lofreq_callparallel'])
-include { DO_DEPTH              } from '../modules/local/do_depth'              addParams( options: modules['do_depth']          )
-include { SNPEFF_BUILD          } from '../modules/local/snpeff_build'          addParams( options: modules['snpeff_build' ]    )
+include { DO_DEPTH              } from '../modules/local/do_depth'              addParams( options: modules['do_depth']           )
+include { SNPEFF_BUILD          } from '../modules/local/snpeff_build'          addParams( options: modules['snpeff_build' ]      )
 include { SNPEFF_ANN            } from '../modules/local/snpeff_ann'            addParams( options: modules['snpeff_ann' ]        )
 include { TSV2VCF               } from '../modules/local/tsv2vcf'               addParams( options: modules['tsv2vcf' ]           )
 include { MAKEVARTABLE          } from '../modules/local/makevartable'          addParams( options: modules['makevartable' ]      )
+include { CHANGE_FASTA_NAME     } from '../modules/local/change_fasta_name'     addParams( options: modules['change_fasta_name' ] )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -405,10 +406,15 @@ workflow VIRALEVO {
         ch_filtered_vcfs,
         ch_fasta
     )
-    //CONSENSUS_FASTA.out.view_out.view()
+    ch_consensus_fa = CONSENSUS_FASTA.out.consensus_out
+    ch_consensus_fa.view()
+    // CONSENSUS_FASTA.out.view_out.view() this must be to view channels in the subworkflow
 
-
-
+    CHANGE_FASTA_NAME (
+        ch_consensus_fa
+    )
+    ch_new_fa = CHANGE_FASTA_NAME.out.new_fa
+    ch_new_fa.view()
     //
     // SUBWORKFLOW: Index and stats on indelqual bam files using SAMTOOLS
     //
