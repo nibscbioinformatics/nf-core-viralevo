@@ -357,7 +357,6 @@ workflow VIRALEVO {
 
     if (!params.noannotation) {
 
-
     SNPEFF_BUILD (
         ch_fasta,
         ch_annotation
@@ -385,23 +384,28 @@ workflow VIRALEVO {
 // Reporting
 ////////////////////////
 
-
     //
     // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
     //
-    //vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff/vcf')
-    //vcf = Channel.fromPath( './results/variants/snpeff/vcf', type: 'dir' )
-
-
-
     MAKEVARTABLE (
         ch_vcffortable,
         params.alt_depth_threshold,
         params.vaf_threshold
     )
     ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
-    ch_filtered_vcfs.view()
 
+//////////////////////////
+// Build Consensus Sequennce
+/////////////////////////
+
+    //
+    // Subworkflow: Build a consensus using bcftools from the filtered vcfs
+    //
+    CONSENSUS_FASTA (
+        ch_filtered_vcfs,
+        ch_fasta
+    )
+    //CONSENSUS_FASTA.out.view_out.view()
 
 
 
@@ -420,6 +424,7 @@ workflow VIRALEVO {
     //MARK_DUPLICATES_PICARD (
     //    bam
     //)
+
     //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
     //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
     //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
@@ -438,6 +443,8 @@ workflow VIRALEVO {
 
     //
     // MODULE: Mark duplicate reads using PICARD
+    // TODO: in viralreon pipeline... include?
+    // Amplicon-seq considerations?
     //
     //MARK_DUPLICATES_PICARD_IVAR (
     //    ch_primer_trimmed_sorted_bam

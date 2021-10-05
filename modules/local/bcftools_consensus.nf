@@ -5,7 +5,7 @@ params.options = [:]
 options        = initOptions(params.options)
 
 process BCFTOOLS_CONSENSUS {
-    tag "$vcf"
+    tag "$meta.id"
     label 'process_medium'
     publishDir "${params.outdir}",
         mode: params.publish_dir_mode,
@@ -19,11 +19,11 @@ process BCFTOOLS_CONSENSUS {
     }
 
     input:
-    tuple path(vcf), path(csi)
-    path fasta 
+    tuple val(meta), path(vcf), path(csi)
+    path fasta
 
     output:
-    tuple path("*.fa"), emit: fasta
+    tuple val(meta), path("*.fasta"), emit: fasta
     path "*.version.txt", emit: version
 
     script:
@@ -32,7 +32,7 @@ process BCFTOOLS_CONSENSUS {
     def caller   = ("$vcf".contains("_ivar")) ? "ivar" :  ("$vcf".contains("lofreq")) ? "lofreq" : ''
     def prefix   = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
     """
-    cat $fasta | bcftools consensus $vcf $options.args > ${filename}_${caller}.fa
+    cat $fasta | bcftools consensus $vcf $options.args > ${filename}_${caller}.consensus.fasta
 
     echo \$(bcftools --version 2>&1) | sed 's/^.*bcftools //; s/ .*\$//' > ${software}.version.txt
     """

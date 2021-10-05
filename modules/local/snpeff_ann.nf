@@ -34,7 +34,7 @@ process SNPEFF_ANN {
     script:
     def software  = getSoftwareName(task.process)
     def prefix    = options.suffix ? "${meta.id}${options.suffix}" : "${meta.id}"
-    def caller   = ("$vcf".contains("ivar")) ? "_ivar" :  ("$vcf".contains("lofreq")) ? "_lofreq" : ''
+    def caller   = ("$vcf".contains("ivar")) ? "ivar" :  ("$vcf".contains("lofreq")) ? "lofreq" : ''
     def avail_mem = 4
     if (!task.memory) {
         log.info '[snpEff] Available memory not known - defaulting to 4GB. Specify process memory requirements to change this.'
@@ -49,9 +49,9 @@ process SNPEFF_ANN {
         -config $config \\
         -dataDir $db \\
         $vcf \\
-        -csvStats ${prefix}${caller}.snpeff.csv \\
-        > ${prefix}${caller}.snpeff.vcf
-    mv snpEff_summary.html ${prefix}${caller}.snpeff.summary.html
+        -csvStats ${prefix}_${caller}.snpeff.csv \\
+        > ${prefix}_${caller}.snpeff.vcf
+    mv snpEff_summary.html ${prefix}_${caller}.snpeff.summary.html
     echo \$(snpEff -version 2>&1) | sed 's/^.*SnpEff //; s/ .*\$//' > ${software}.version.txt
     """
 }
