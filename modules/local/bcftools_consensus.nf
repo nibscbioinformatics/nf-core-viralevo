@@ -24,6 +24,7 @@ process BCFTOOLS_CONSENSUS {
 
     output:
     tuple val(meta), path("*.fasta"), emit: fasta
+    //tuple val("${prefix}"), val("{$caller}"), file("${vcfin}"), emit: report_vcf
     path "*.version.txt", emit: version
 
     script:

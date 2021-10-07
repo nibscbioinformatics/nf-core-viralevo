@@ -1,0 +1,21 @@
+# You can use this file to create a conda environment for this pipeline:
+#   conda env create -f environment.yml
+name: viralevo-reporting
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+  - r
+dependencies:
+  - conda-forge::pandoc=2.9.2.1
+  - r::r=3.6.0
+  - r::r-tidyverse=1.2.1
+  - r::r-rmarkdown=1.12
+  - r::r-knitr=1.22
+  - r::r-tidyverse=1.2.1
+  - conda-forge::r-ape=5.4
+  - bioconda::bioconductor-genomicfeatures=1.36.0
+  - bioconda::bioconductor-variantannotation=1.30.0
+  - bioconda::bioconductor-biostrings=2.52.0
+  - bioconda::bioconductor-gviz=1.28.0
+  - bioconda::bioconductor-rtracklayer=1.44.2

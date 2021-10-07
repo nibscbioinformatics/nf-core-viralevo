@@ -28,6 +28,7 @@ workflow LOFREQ_INDEX_FLAGSTAT {
     emit:
     bam      = LOFREQ_INDELQUAL.out.bam    // channel: [ val(meta), [ bam ] ]
     bai      = SAMTOOLS_INDEX.out.bai          // channel: [ val(meta), [ bai ] ]
+    bam_bai  = LOFREQ_INDELQUAL.out.report_bam.join(SAMTOOLS_INDEX.out.report_bai, by: [0], remainder: true)
 
     flagstat = SAMTOOLS_FLAGSTAT.out.flagstat // channel: [ val(meta), [ flagstat ] ]
     version  = SAMTOOLS_INDEX.out.version       //    path: *.version.txt

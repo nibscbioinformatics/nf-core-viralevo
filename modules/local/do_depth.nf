@@ -23,7 +23,7 @@ process DO_DEPTH {
     path(bai)
 
     output:
-    path("*_samtools.depth"), optional:true, emit: coverage
+    path("merged_samtools.depth"), optional:true, emit: coverage
 
     script:
     def software = getSoftwareName(task.process)

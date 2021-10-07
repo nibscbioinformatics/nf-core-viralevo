@@ -22,6 +22,7 @@ process LOFREQ_INDELQUAL {
     file fasta
 
     output:
+    tuple val("${meta.id}"), path("*_indelqual.bam"), optional:true, emit: report_bam
     tuple val(meta), path("*_indelqual.bam"), emit: bam
     path "*.version.txt"                    , emit: version
 

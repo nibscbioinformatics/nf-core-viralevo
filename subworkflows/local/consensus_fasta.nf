@@ -75,5 +75,6 @@ workflow CONSENSUS_FASTA {
     view_out         = BCFTOOLS_VIEW.out.vcf        // channel: [ vcf   ]
     index_out        = BCFTOOLS_INDEX.out.index     // channel: [ vcf   ]
     consensus_out    = BCFTOOLS_CONSENSUS.out.fasta // channel: [ vcf,fasta ]
+    //report_out       = BCFTOOLS_CONSENSUS.out.report_vcf // channel: [ vcf,fasta ]
     bcftools_version = BCFTOOLS_NORM.out.version   // path: *.version.txt
 }

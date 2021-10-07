@@ -49,8 +49,9 @@ if (params.fasta) { ch_fasta = Channel.value(file(params.fasta, checkIfExists: t
 params.phyref = params.genome ? params.virus_reference[params.genome].pyloref ?: null : null
 if (params.phyref) { ch_phyloref = Channel.value(file(params.phyref, checkIfExists: true)) }
 
-params.genome_rmodel = params.genome ? params.virus_reference[params.genome].rmodel ?: null : null
-if (params.genome_rmodel) { ch_genome_rmodel = Channel.value(file(params.genome_rmodel, checkIfExists: true)) }
+// changed from genome rmodel to rmodel
+params.rmodel = params.genome ? params.virus_reference[params.genome].rmodel ?: null : null
+if (params.rmodel) { ch_genome_rmodel = Channel.value(file(params.rmodel, checkIfExists: true)) }
 
 //Creating channels for other files
 
@@ -101,6 +102,7 @@ include { SNPEFF_ANN            } from '../modules/local/snpeff_ann'            
 include { TSV2VCF               } from '../modules/local/tsv2vcf'               addParams( options: modules['tsv2vcf' ]           )
 include { MAKEVARTABLE          } from '../modules/local/makevartable'          addParams( options: modules['makevartable' ]      )
 include { CHANGE_FASTA_NAME     } from '../modules/local/change_fasta_name'     addParams( options: modules['change_fasta_name' ] )
+include { REPORTING             } from '../modules/local/reporting'             addParams( options: modules['reporting' ]         )
 
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
@@ -170,7 +172,6 @@ workflow VIRALEVO {
             meta.id = meta.id.split('_')[0..-2].join('_')
             [ meta, fastq ] }
     .set { ch_fastq }
-    //ch_fastq.view()
 
 ///////////////////
 // QC & Trimming
@@ -202,6 +203,7 @@ workflow VIRALEVO {
     TRIMLOG (
         ch_trim_logs
     )
+    ch_trimlog = TRIMLOG.out.summary
 
     //
     // MODULE: Run FASTQC on trimmed reads
@@ -257,16 +259,6 @@ workflow VIRALEVO {
     )
     ch_sorted_bam = SAMTOOLS_SORT.out.bam
 
-    // Incorporated module into subworkflow below
-    //
-    // MODULE: Insert indel quality using LOFREQ
-    //
-    //LOFREQ_INDELQUAL (
-    //    ch_sorted_bam, ch_fasta
-    //)
-    //ch_indelqual_bam          = LOFREQ_INDELQUAL.out.bam
-    // ch_software_versions      = ch_software_versions.mix(LOFREQ_INDELQUAL.out.version.first().ifEmpty(null))
-
     //
     // SUBWORKFLOW: LoFreq indelqual, index and stats on indelqual bam files using SAMTOOLS
     //
@@ -276,6 +268,7 @@ workflow VIRALEVO {
     )
     ch_indelqual_bam = LOFREQ_INDEX_FLAGSTAT.out.bam
     ch_indelqual_bai = LOFREQ_INDEX_FLAGSTAT.out.bai
+    ch_indelqual_bam_bai = LOFREQ_INDEX_FLAGSTAT.out.bam_bai.toSortedList()
     ch_alignment_stats = LOFREQ_INDEX_FLAGSTAT.out.flagstat.collect{it[1]}
     ch_software_versions = ch_software_versions.mix(LOFREQ_INDEX_FLAGSTAT.out.version.first().ifEmpty(null))
 
@@ -285,6 +278,7 @@ workflow VIRALEVO {
     ALIGNMENTLOG (
         ch_alignment_stats
     )
+    ch_alignlog = ALIGNMENTLOG.out.summary
 
 ///////////////
 // LoFreq Variant Calling
@@ -309,6 +303,7 @@ workflow VIRALEVO {
         ch_indelqual_bam.collect{it[1]},
         ch_indelqual_bai.collect{it[1]}
     )
+    ch_samdepth = DO_DEPTH.out.coverage
 
 ///////////////////
 // iVAR Variant Calling
@@ -330,7 +325,9 @@ workflow VIRALEVO {
     // MODULE: Call variants with IVAR
     //
     IVAR_VARIANTS (
-        ch_primer_trimmed_sorted_bam, ch_fasta, ch_annotation
+        ch_primer_trimmed_sorted_bam,
+        ch_fasta,
+        ch_annotation
     )
     ch_ivar_variants     = IVAR_VARIANTS.out.tsv
     ch_software_versions = ch_software_versions.mix(IVAR_VARIANTS.out.version.first().ifEmpty(null))
@@ -355,7 +352,6 @@ workflow VIRALEVO {
     //
     // MODULE: Build SNP Annotation DB from gff and fasta
     //
-
     if (!params.noannotation) {
 
     SNPEFF_BUILD (
@@ -376,13 +372,13 @@ workflow VIRALEVO {
     )
     ch_vcffortable = SNPEFF_ANN.out.vcf.collect{it[1]}
     ch_software_versions = ch_software_versions.mix(SNPEFF_ANN.out.version.first().ifEmpty(null))
-    ch_annotatedvcf = ch_vcffortable.flatten().filter( ~/^.*vcf/ ) // flattens into one elemenbt, only vcf files... not really sure what this is for yet
+    //ch_annotatedvcf = ch_vcffortable.flatten().filter( ~/^.*vcf/ ) // flattens into one elemenbt, only vcf files... not really sure what this is for yet
     } else {
         ch_vcffortable = merged_ch.collect{it[1]} // if no annotation process simply use merged table for input in report processes
     }
 
 /////////////////////////
-// Reporting
+// VCF Filtering
 ////////////////////////
 
     //
@@ -393,7 +389,8 @@ workflow VIRALEVO {
         params.alt_depth_threshold,
         params.vaf_threshold
     )
-    ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
+    ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten() //prcoess each element(file) seperately
+    ch_vartable      = MAKEVARTABLE.out.csv
 
 //////////////////////////
 // Build Consensus Sequennce
@@ -407,79 +404,52 @@ workflow VIRALEVO {
         ch_fasta
     )
     ch_consensus_fa = CONSENSUS_FASTA.out.consensus_out
-    ch_consensus_fa.view()
-    // CONSENSUS_FASTA.out.view_out.view() this must be to view channels in the subworkflow
+    //ch_report_vcf   = CONSENSUS_FASTA.out.report_out.toSortedList()
+    // CONSENSUS_FASTA.out.view_out.view() view channels in the subworkflow.. keep as example
 
     CHANGE_FASTA_NAME (
         ch_consensus_fa
     )
     ch_new_fa = CHANGE_FASTA_NAME.out.new_fa
-    ch_new_fa.view()
-    //
-    // SUBWORKFLOW: Index and stats on indelqual bam files using SAMTOOLS
-    //
-    //BAM_SORT_SAMTOOLS (
-    //    ch_indelqual_bam
-    //)
-    //bam = BAM_SORT_SAMTOOLS.out.bam
-    //ch_software_versions = ch_software_versions.mix(BAM_SORT_SAMTOOLS.out.version.first().ifEmpty(null))
 
-    //
-    // SUBWORKFLOW: Mark duplicate reads using PICARD and stats
-    //
-    //MARK_DUPLICATES_PICARD (
-    //    bam
-    //)
+//////////////////////////
+// Reporting
+/////////////////////////
 
-    //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
-    //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-    //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-    //ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
-
-    //
-    // MODULE: Run SAMTOOLS to index indelqual bam
-    //
-   // SAMTOOLS_INDEX_INDELQUAL (
-    //    ch_indelqual_bam
-    //)
-    ///ch_indelqual_bam_bai =  SAMTOOLS_INDEX_INDELQUAL.out.bai
+    // format vcf and bam channels for reporting process
+    MAKEVARTABLE.out.filteredvars.flatten().map { file ->
+        def prefix = file.baseName.split('_')[0]
+        def caller = file.baseName.split('_')[1]
+        return( tuple(prefix, caller, file)) }
+        .set { ch_vcf_reporting }
 
 
-    //ch_lofreq_variants.view()
+    ch_indelqual_bam_and_bai.map { bam ->
+        def prefix = bam[1].baseName.split('_')[0]
+        def ba    = bam[1]
+        def bai   = bam[2]
+        return( tuple(prefix, ba, bai)) }
+        .set { ch_bam_reporting }
 
-    //
-    // MODULE: Mark duplicate reads using PICARD
-    // TODO: in viralreon pipeline... include?
-    // Amplicon-seq considerations?
-    //
-    //MARK_DUPLICATES_PICARD_IVAR (
-    //    ch_primer_trimmed_sorted_bam
-    //)
-    //ch_samtools_stats         = MARK_DUPLICATES_PICARD.out.stats
-    //ch_samtools_flagstat      = MARK_DUPLICATES_PICARD.out.flagstat
-    //ch_samtools_idxstats      = MARK_DUPLICATES_PICARD.out.idxstats
-    //ch_software_versions      = ch_software_versions.mix(MARK_DUPLICATES_PICARD.out.picard_version.first().ifEmpty(null))
+    //ch_rm = ch_indelqual_bam_and_bai.flatten().first() // .filter( ~/^.*ba[im]\$/ )
+    //ch_rm.view()
 
+   // LOFREQ_INDEX_FLAGSTAT.out.bam_bai.flatten().map { file ->
+  //      def prefix = file.baseName
+  //      def bam    = file.endsWith((".bam"))
+  //      def bai    = file.endsWith((".bam.bai"))
+  //      return( tuple(prefix, bam, bai)) }
+  //      .set { ch_bam_reporting }
 
-    //
-    // MODULE: Take output from annotated vcf files, generate table and write out a filtered VCF file for each input VCF file
-    //
-    //vcf = Channel.fromPath('/Data/Users/rbhuller/tmp/new/results/variants/snpeff/vcf')
-    //vcf = Channel.fromPath( './results/variants/snpeff/vcf', type: 'dir' )
-
-    //MAKEVARTABLE (
-    //    ch_annotatedfortable, params.alt_depth_threshold, params.vaf_threshold
-    //)
-    //ch_filtered_vcfs = MAKEVARTABLE.out.filteredvars.flatten()
-    //ch_filtered_vcfs.view()
-
-    //
-    // Subworkflow: Build a consensus using bcftools from the filtered vcfs
-    //
-    //CONSENSUS_FASTA (
-    //    ch_filtered_vcfs, ch_fasta
-    //)
-    //CONSENSUS_FASTA.out.view_out.view()
+    REPORTING (
+        ch_vcf_reporting.toSortedList(), //.toSortedList(),
+        ch_genome_rmodel,
+        ch_bam_reporting.toSortedList(),   //   ch_indelqual_bam_bai,
+        ch_trimlog,
+        ch_alignlog,
+        ch_samdepth,
+        ch_vartable
+    )
 
     //
     // MODULE: Pipeline reporting
@@ -514,7 +484,10 @@ workflow VIRALEVO {
     )
     multiqc_report       = MULTIQC.out.report.toList()
     ch_software_versions = ch_software_versions.mix(MULTIQC.out.version.ifEmpty(null))
+
 }
+
+// TODO Phylogenetics & Assembley-based Approaches
 
 /*
 ========================================================================================
