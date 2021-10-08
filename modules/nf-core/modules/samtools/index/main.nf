@@ -23,6 +23,7 @@ process SAMTOOLS_INDEX {
 
     output:
     tuple val(meta), path("*.bai"), optional:true, emit: bai
+    tuple val(meta.id), path(bam), path("*.bai"), optional:true, emit: bam_bai
     tuple val(meta), path("*.csi"), optional:true, emit: csi
     path  "*.version.txt"         , emit: version
 

@@ -44,10 +44,8 @@ process REPORTING {
     callerLabels = callersList.join(",")
     vcfFiles = vcfList.join(",")
 
-
-
     // handling the BAM files and metadata
-    // expects tuple: ID, BAM, BAI... combine bam and bai file?
+    // expects tuple: ID, BAM, BAI in one channel
     def bamSampleList = []
     def bamList = []
     def baiList = []
@@ -74,7 +72,6 @@ process REPORTING {
         baseDir = \\\"$baseDir\\\",
         bamSamples = \\\"$bamSamples\\\",
         bamFiles = \\\"$bamFiles\\\",
-        baiFiles =  \\\"$baiFiles\\\",
         trimsummarytable = \\\"$trimsummary\\\",
         alignmentsummarytable = \\\"$alignmentsummary\\\",
         samdepthtable = \\\"$samdepth\\\",

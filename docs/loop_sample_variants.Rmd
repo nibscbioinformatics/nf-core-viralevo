@@ -7,41 +7,50 @@ editor_options:
 
 ```{r, include=FALSE}
 options(ucscChromosomeNames=FALSE)
+
 source(paste0(baseDir,"/bin/parseSnpEff.R"))
 vcf <- readVcf(vcffile, genome = genome)
 if (noannotation == "false") {
   vcf <- parseSnpEff(vcf)
 }
 vars <- rowRanges(vcf)
+
 elementMetadata(vars) <- cbind(info(vcf), elementMetadata(vcf))
+
 if("AF" %in% names(geno(vcf))){
   vars$AF <- unname(geno(vcf)$AF)
 }
+
 genomeGR <- readRDS(model)
+
 chr <- as.character(unique(seqnames(genomeGR)))
 gen <- genome(genomeGR)
 gtrack <- GenomeAxisTrack()
 atrack <- AnnotationTrack(genomeGR, name = genome)
+
 genetrack <- GeneRegionTrack(genomeGR,
-                            genome = gen,
-                            chromosome = chr,
-                            name = genome,
-                            showId = TRUE,
-                            geneSymbol = TRUE,
-                            symbol = genomeGR$gene)
+                             genome = gen,
+                             chromosome = chr,
+                             name = genome,
+                             showId = TRUE,
+                             geneSymbol = TRUE,
+                             symbol = genomeGR$gene)
+
 variants <- AnnotationTrack(vars, chromosome = chr, genome = gen,
-                            name = "Variants")
+                          name = "Variants")
+
 af <- DataTrack(vars, genome = gen,
                 chromosome = chr,
                 data = "AF",
                 type = c("h", "p"),
                 group = as.character(vars$Feature_Type),
                 legend = TRUE,
-                name = "Allele Fraction",
+                name = "Allele Fraction"
                 )
+
 cov <- DataTrack(range = bamfile, genome = gen, type = "l",
-                name = "Coverage", window = -1,
-                chromosome = chr)
+                     name = "Coverage", window = -1,
+                     chromosome = chr)
 ```
 
 
@@ -49,5 +58,5 @@ cov <- DataTrack(range = bamfile, genome = gen, type = "l",
 ### Sample `r sample` with caller `r caller`
 
 ```{r, results='asis', echo=FALSE}
-plotTracks(list(gtrack, atrack, genetrack, variants, af))
+plotTracks(list(gtrack, genetrack, variants, af, cov))
 ```

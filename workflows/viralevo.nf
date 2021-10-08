@@ -21,14 +21,8 @@ if (params.virus_reference && params.genome && !params.virus_reference.containsK
     exit 1, "The provided genome '${params.genome}' is not available in the iGenomes file. Currently the available genomes are ${params.genomes.keySet().join(", ")}"
 }
 
-// TODO remove if rest works
-// Stage dummy file to be used as an optional input where required
-//ch_dummy_file = Channel.fromPath("$projectDir/assets/dummy_file.txt", checkIfExists: true).collect()
-
-
 // TODO create save reference param (see sarek) to save index files etc
 // TODO check if possible to provide cache/path to pre-installed snpeff dataset
-
 // TODO add readgroups to bwa mem using more robust method
 
 // Initialize value channels based on params,
@@ -36,8 +30,6 @@ if (params.virus_reference && params.genome && !params.virus_reference.containsK
 //params.snpeff_db = params.genome ? params.virus_reference[params.genome].snpeff_db ?: null : null
 //snpeff_db         = params.snpeff_db         ?: ''
 //snpeff_cache      = params.snpeff_cache      ? Channel.fromPath(params.snpeff_cache).collect()      : ch_dummy_file
-
-
 
 //Creating value channels for reference files
 params.gff = params.genome ? params.virus_reference[params.genome].gff ?: null : null
@@ -83,11 +75,6 @@ def modules = params.modules.clone()
 def multiqc_options   = modules['multiqc']
 multiqc_options.args += params.multiqc_title ? Utils.joinModuleArgs(["--title \"$params.multiqc_title\""]) : ''
 
-// Dont want to rewrite module code, so add readgroup here
-// TODO check this works, compare to viralevo
-//def bwamem2_options   = modules['bwamem2_mem']
-// bwamem2_options.args += "-R '@RG\\tID:${prefix}\\tSM:${prefix}\\tPL:Illumina'"
-
 //
 // MODULE: Local to the pipeline
 //
@@ -107,12 +94,10 @@ include { REPORTING             } from '../modules/local/reporting'             
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK           } from '../subworkflows/local/input_check'      addParams( options: [:] )
-include { LOFREQ_INDEX_FLAGSTAT    } from '../subworkflows/local/lofreq_index_flagstat'      addParams( lofreq_indelqual_options: modules['lofreq_indelqual'], index_options: modules['samtools_index'], flagstat_options: modules['samtools_flagstat'] )
-
-
-include { PRIMER_TRIM_IVAR } from '../subworkflows/local/primer_trim_ivar' addParams( ivar_trim_options: modules['ivar_trim'], samtools_options: modules['ivar_trim_sort_bam'] )
-include { CONSENSUS_FASTA  } from '../subworkflows/local/consensus_fasta'  addParams( cut_vcf_options: modules['cut_vcf'], bcftools_norm_options: modules['bcftools_norm'], bcftools_view_options: modules['bcftools_view'], bcftools_index_options: modules['bcftools_index'], bcftools_consensus_options: modules['bcftools_consensus'] )
+include { INPUT_CHECK           } from '../subworkflows/local/input_check'                addParams( options: [:] )
+include { LOFREQ_INDEX_FLAGSTAT } from '../subworkflows/local/lofreq_index_flagstat'      addParams( lofreq_indelqual_options: modules['lofreq_indelqual'], index_options: modules['samtools_index'], flagstat_options: modules['samtools_flagstat'] )
+include { PRIMER_TRIM_IVAR      } from '../subworkflows/local/primer_trim_ivar'           addParams( ivar_trim_options: modules['ivar_trim'], samtools_options: modules['ivar_trim_sort_bam'] )
+include { CONSENSUS_FASTA       } from '../subworkflows/local/consensus_fasta'            addParams( cut_vcf_options: modules['cut_vcf'], bcftools_norm_options: modules['bcftools_norm'], bcftools_view_options: modules['bcftools_view'], bcftools_index_options: modules['bcftools_index'], bcftools_consensus_options: modules['bcftools_consensus'] )
 
 /*
 ========================================================================================
@@ -146,7 +131,6 @@ include { MULTIQC                                    } from '../modules/nf-core/
 //
 //include { BAM_STATS_SAMTOOLS     } from '../subworkflows/nf-core/bam_stats_samtools'          addParams( options: [:] )
 include { BAM_SORT_SAMTOOLS      } from '../subworkflows/nf-core/bam_sort_samtools'           addParams( sort_options: modules['samtools_sort'], index_options: modules['samtools_index'], stats_options: modules['samtools_stats'] )
-//include { MARK_DUPLICATES_PICARD } from '../subworkflows/nf-core/mark_duplicates_picard'      addParams( markduplicates_options: modules['picard_markduplicates'], samtools_index_options: modules['picard_markduplicates_samtools'], samtools_stats_options: modules['picard_markduplicates_samtools'] )
 
 /*
 ========================================================================================
@@ -268,7 +252,7 @@ workflow VIRALEVO {
     )
     ch_indelqual_bam = LOFREQ_INDEX_FLAGSTAT.out.bam
     ch_indelqual_bai = LOFREQ_INDEX_FLAGSTAT.out.bai
-    ch_indelqual_bam_bai = LOFREQ_INDEX_FLAGSTAT.out.bam_bai.toSortedList()
+    ch_bam_bai   = LOFREQ_INDEX_FLAGSTAT.out.bam_bai // for reporting
     ch_alignment_stats = LOFREQ_INDEX_FLAGSTAT.out.flagstat.collect{it[1]}
     ch_software_versions = ch_software_versions.mix(LOFREQ_INDEX_FLAGSTAT.out.version.first().ifEmpty(null))
 
@@ -416,7 +400,7 @@ workflow VIRALEVO {
 // Reporting
 /////////////////////////
 
-    // format vcf and bam channels for reporting process
+    // reformat vcf channel for reporting process
     MAKEVARTABLE.out.filteredvars.flatten().map { file ->
         def prefix = file.baseName.split('_')[0]
         def caller = file.baseName.split('_')[1]
@@ -424,12 +408,12 @@ workflow VIRALEVO {
         .set { ch_vcf_reporting }
 
 
-    ch_indelqual_bam_and_bai.map { bam ->
-        def prefix = bam[1].baseName.split('_')[0]
-        def ba    = bam[1]
-        def bai   = bam[2]
-        return( tuple(prefix, ba, bai)) }
-        .set { ch_bam_reporting }
+    //ch_bam_bai.map { bam ->
+    //    def prefix = bam[1].baseName.split('_')[0]
+    //    def ba    = bam[1]
+    //    def bai   = bam[2]
+    //    return( tuple(prefix, ba, bai)) }
+     //   .set { ch_bam_reporting }
 
     //ch_rm = ch_indelqual_bam_and_bai.flatten().first() // .filter( ~/^.*ba[im]\$/ )
     //ch_rm.view()
@@ -444,7 +428,7 @@ workflow VIRALEVO {
     REPORTING (
         ch_vcf_reporting.toSortedList(), //.toSortedList(),
         ch_genome_rmodel,
-        ch_bam_reporting.toSortedList(),   //   ch_indelqual_bam_bai,
+        ch_bam_bai.toSortedList(),   //   ch_indelqual_bam_bai,
         ch_trimlog,
         ch_alignlog,
         ch_samdepth,
